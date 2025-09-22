@@ -1,0 +1,26 @@
+// app/api/profile/route.ts
+import { currentUser } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import connectDB from "../../../mongodb/db";
+import { Profile } from "../../../mongodb/models/profile";
+
+export async function GET() {
+  const user = await currentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  try {
+    await connectDB();
+    const profile = await Profile.findOne({ userId: user.id }).lean();
+
+    if (!profile) {
+      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(profile, { status: 200 });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+  }
+}
