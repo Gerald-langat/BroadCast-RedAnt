@@ -15,7 +15,7 @@ function CommentFeed({ post }: { post: IPostDocument }) {
       {post?.comments?.map((comment) => (
         <div key={comment._id} className="flex space-x-1">
           <Avatar>
-            <AvatarImage src={comment.user.userImage} />
+            <AvatarImage src={comment.user.userImg} />
             <AvatarFallback>
               {comment.user.firstName?.charAt(0)}
               {comment.user.lastName?.charAt(0)}

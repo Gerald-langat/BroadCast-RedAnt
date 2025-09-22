@@ -6,6 +6,7 @@ import { IProfileBase } from "./profile";
 export interface IPostBase {
   user: IProfileBase;
   cast: string;
+  scope: string,
   imageUrl?: string;
   comments?: IComment[];
   likes?: string[];
@@ -44,6 +45,7 @@ const PostSchema = new Schema<IPostDocument>(
       userImg: { type: String }
     },
     cast: { type: String, required: true },
+    scope: { type: String, default: "Home" },
     imageUrl: { type: String },
     comments: { type: [Schema.Types.ObjectId], ref: "Comment", default: [] },
     likes: { type: [String] },
@@ -111,6 +113,9 @@ PostSchema.statics.getAllPosts = async function () {
     console.log("error when getting all posts", error);
   }
 };
+
+
+
 
 PostSchema.methods.getAllComments = async function () {
   try {

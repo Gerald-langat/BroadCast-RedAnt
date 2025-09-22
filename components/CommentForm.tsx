@@ -1,14 +1,32 @@
 "use client";
 
-import createCommentAction from "@/actions/createCommentAction";
+import createCommentAction from "@/app/actions/createCommentAction";
 import { useUser } from "@clerk/nextjs";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { toast } from "sonner";
+import { IProfileBase } from "@/mongodb/models/profile";
 
 function CommentForm({ postId }: { postId: string }) {
   const { user } = useUser();
   const ref = useRef<HTMLFormElement>(null);
+  const [profile, setProfile] = useState<IProfileBase | null>(null);
+
+  // fetch profile
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch("/api/profile");
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        const data = await res.json();
+        setProfile(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const createCommentActionWithPostId = createCommentAction.bind(null, postId);
 
@@ -43,10 +61,10 @@ function CommentForm({ postId }: { postId: string }) {
       className="flex items-center space-x-1"
     >
       <Avatar>
-        <AvatarImage src={user?.imageUrl} />
+        <AvatarImage src={profile?.userImg} />
         <AvatarFallback>
-          {user?.firstName?.charAt(0)}
-          {user?.lastName?.charAt(0)}
+          {profile?.firstName?.charAt(0)}
+          {profile?.lastName?.charAt(0)}
         </AvatarFallback>
       </Avatar>
 

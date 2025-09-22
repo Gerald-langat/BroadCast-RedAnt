@@ -1,12 +1,21 @@
+"use client"
 import { IPostDocument } from "@/mongodb/models/post";
 import Post from "./Post";
+import { useScope } from "@/app/context/ScopeContext";
 
-async function PostFeed({ posts }: { posts: IPostDocument[] }) {
+ function PostFeed({ posts }: { posts: IPostDocument[] }) {
+  const { scope, setScope } = useScope();
+
+
+
   return (
     <div className="space-y-2 pb-20">
-      {posts?.map((post) => (
-        <Post key={post._id} post={post} />
-      ))}
+      {posts
+        .filter((p) => p.scope === scope)
+        .map((post) => (
+          <Post key={post._id} post={post} />
+        ))}
+
     </div>
   );
 }

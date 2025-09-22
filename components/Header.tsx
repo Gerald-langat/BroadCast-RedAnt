@@ -1,3 +1,6 @@
+"use client"
+import { useScope } from "@/app/context/ScopeContext";
+import { IProfileBase } from "@/mongodb/models/profile";
 import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import {
   Briefcase,
@@ -11,11 +14,33 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Button } from "./ui/button";
+import { useEffect, useState } from "react";
 
-async function Header() {
+ function Header() {
+const [user, setUser] = useState<IProfileBase | null>(null);
+
+  // 🔹 Use global scope from context
+  const { scope, setScope } = useScope();
+
+  useEffect(() => {
+    const fetchUserScope = async () => {
+      try {
+        const res = await fetch("/api/profile");
+        if (!res.ok) throw new Error("Failed to fetch user scope");
+
+        const data = await res.json();
+        setUser(data);
+      } catch (err) {
+        console.error("Error fetching user scope:", err);
+        setUser(null);
+      }
+    };
+
+    fetchUserScope();
+  }, []);
+
   return (
-    <div className="flex items-center p-2 max-w-6xl mx-auto">
+    <div className="flex items-center p-2 max-w-7xl mx-auto">
       {/* Logo */}
       <Image
         className="rounded-lg"
@@ -39,35 +64,27 @@ async function Header() {
       </div>
 
       <div className="flex items-center space-x-4 px-6">
-        <Link href="" className="icon">
+        <div onClick={() => setScope("Home")} className="icon cursor-pointer">
           <HomeIcon className="h-5 " />
           <p>Home</p>
-        </Link>
+        </div>
 
-        <Link href="" className="icon hidden md:flex">
+        <div onClick={() => user?.county && setScope(user?.county)} className="icon hidden md:flex cursor-pointer">
           <Map className="h-5" />
           <p>County</p>
-        </Link>
+        </div>
 
-        <Link href="" className="icon hidden md:flex">
+        <div onClick={() => user?.constituency && setScope(user?.constituency)} className="icon hidden md:flex cursor-pointer">
           <Flag className="h-5" />
           <p>Constituency</p>
-        </Link>
+        </div>
 
-        <Link href="" className="icon">
+        <div onClick={() => user?.ward && setScope(user?.ward)} className="icon cursor-pointer">
           <MapPin className="h-5" />
           <p>Ward</p>
-        </Link>
+        </div>
 
-        <SignedIn>
-          <UserButton />
-        </SignedIn>
-
-        <SignedOut>
-          <Button asChild variant="secondary">
-            <SignInButton />
-          </Button>
-        </SignedOut>
+        
       </div>
     </div>
   );

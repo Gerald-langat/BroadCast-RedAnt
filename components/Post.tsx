@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { IPostDocument } from "@/mongodb/models/post";
 import PostOptions from "./PostOptions";
 import Image from "next/image";
-import deletePostAction from "@/actions/deletePostAction";
+import deletePostAction from "@/app/actions/deletePostAction";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "./ui/button";
 import ReactTimeago from "react-timeago";
@@ -17,7 +17,7 @@ function Post({ post }: { post: IPostDocument }) {
 
   const isAuthor = user?.id === post.user.userId;
   return (
-    <div className="bg-white rounded-md border">
+    <div className="rounded-md border">
       <div className="p-4 flex space-x-2">
         <div>
           <Avatar>

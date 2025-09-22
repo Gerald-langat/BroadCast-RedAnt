@@ -16,9 +16,7 @@ import {
 } from "./ui/dialog";
 import { useScope } from "@/app/context/ScopeContext";
 import { useUser } from "@clerk/nextjs";
-import Link from "next/link";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { IProfileBase } from "./../mongodb/models/profile";
 import { submitCastAction } from "@/app/actions/submitCastAction";
 
@@ -74,6 +72,7 @@ function PostForm() {
       setStatusPreview(URL.createObjectURL(selectedFile));
     }
   };
+
 
   // Generic submit function
 // PostForm.tsx (inside handleSubmit)
@@ -146,7 +145,7 @@ const handleSubmit = async (
     );
 
   return (
-    <div className="w-full md:px-2 xl:max-w-2xl  space-y-0.5">
+    <div className="">
       <h2 className="border-[1px] p-2 rounded-b-md">{scope || "Home"}</h2>
 
       {/* Cast Form */}
@@ -164,7 +163,7 @@ const handleSubmit = async (
             <textarea
               required
               name="cast"
-              className="flex-grow h-12 border-[1px] border-x-0 border-t-0 outline:none focus:right-0 ring-0"
+              className="flex-grow h-12  bg-transparent "
               placeholder="type here..."
             />
             <input
@@ -197,7 +196,7 @@ const handleSubmit = async (
             <div className="space-x-1">
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button>County</Button>
+                  <Button variant="outline">County</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
@@ -211,7 +210,7 @@ const handleSubmit = async (
                       <Button
                         disabled={loadingCast}
                         onClick={() =>
-                          handleSubmit(submitCastAction, false, scope)
+                          handleSubmit(submitCastAction, false, profile?.county)
                         }
                       >
                         {loadingCast ? "Sending..." : "Send"}
@@ -223,7 +222,7 @@ const handleSubmit = async (
 
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button>Constituency</Button>
+                  <Button variant="outline">Constituency</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
@@ -237,7 +236,7 @@ const handleSubmit = async (
                       <Button
                         disabled={loadingCast}
                         onClick={() =>
-                          handleSubmit(submitCastAction, false, scope)
+                          handleSubmit(submitCastAction, false, profile?.constituency)
                         }
                       >
                         {loadingCast ? "Sending..." : "Send"}
@@ -249,7 +248,7 @@ const handleSubmit = async (
 
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button>Ward</Button>
+                  <Button variant="outline">Ward</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
@@ -263,7 +262,7 @@ const handleSubmit = async (
                       <Button
                         disabled={loadingCast}
                         onClick={() =>
-                          handleSubmit(submitCastAction, false, scope)
+                          handleSubmit(submitCastAction, false, profile?.ward)
                         }
                       >
                         {loadingCast ? "Sending..." : "Send"}

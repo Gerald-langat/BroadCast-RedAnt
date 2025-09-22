@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { IPostDocument } from "@/mongodb/models/post";
 import { Button } from "./ui/button";
 import { SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
+import { IProfileBase, Profile } from "@/mongodb/models/profile";
 
 async function UserInformation({ posts }: { posts: IPostDocument[] }) {
   const user = await currentUser();
@@ -20,29 +21,31 @@ async function UserInformation({ posts }: { posts: IPostDocument[] }) {
       []
   );
 
+     const userDB: IProfileBase | null = await Profile.findOne({ userId: user?.id });
+ 
+
   return (
     <div className="flex flex-col justify-center items-center bg-white mr-6 rounded-lg border py-4">
       <Avatar className="h-16 w-16 mb-5">
         {user?.id ? (
-          <AvatarImage src={imageUrl} />
+          <AvatarImage src={userDB?.userImg} />
         ) : (
-          <AvatarImage src="https://github.com/shadcn.png" />
+          <AvatarImage src="/logo/broadcast.jpg" />
         )}
         <AvatarFallback>
-          {firstName?.charAt(0)}
-          {lastName?.charAt(0)}
+          {userDB?.firstName?.charAt(0)}
+          {userDB?.lastName?.charAt(0)}
         </AvatarFallback>
       </Avatar>
 
       <SignedIn>
         <div className="text-center">
           <p className="font-semibold">
-            {firstName} {lastName}
+            {userDB?.firstName} {userDB?.lastName}
           </p>
 
           <p className="text-xs">
-            @{firstName}
-            {lastName}-{user?.id?.slice(-4)}
+            @{userDB?.nickName}
           </p>
         </div>
       </SignedIn>

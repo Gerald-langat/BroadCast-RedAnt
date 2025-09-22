@@ -1,4 +1,9 @@
-// src/actions/submitCastAction.ts
+"use server";
+import connectDB from "@/mongodb/db";
+import { Post } from "@/mongodb/models/post";
+import { IProfileBase, Profile } from "@/mongodb/models/profile";
+import { revalidatePath } from "next/cache";
+import { currentUser } from "@clerk/nextjs/server";
 
 export const submitCastAction = async (
   cast: string,
@@ -6,39 +11,42 @@ export const submitCastAction = async (
   scope?: string
 ) => {
   try {
-    const resProfile = await fetch("/api/profile");
-    if (!resProfile.ok) throw new Error("Failed to fetch user profile");
+    // Get authenticated user
+    const user = await currentUser();
+    if (!user?.id) throw new Error("User not authenticated");
 
-    const user = await resProfile.json();
+    // Connect to DB
+    await connectDB();
 
-    // Map to match Mongoose schema
+    // Fetch full profile from DB
+    const userDB: IProfileBase | null = await Profile.findOne({ userId: user.id });
+    if (!userDB) throw new Error("User profile not found");
+
+    // Map fields to match Post schema
     const userForPost = {
-      userId: user.userId,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      nickName: user.nickName,
-      userImg: user.userImg || "", // <-- must match schema
+      userId: userDB.userId,
+      firstName: userDB.firstName,
+      lastName: userDB.lastName,
+      nickName: userDB.nickName,
+      userImg: userDB.userImg || "", // must match schema
     };
 
-    const res = await fetch("/api/posts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user: userForPost,
-        cast: cast,               // <-- must match schema
-        imageUrl: imageUrl || null,
-        scope: scope || "Home",
-      }),
-    });
+    // Create the post directly
+    const postCreated = await Post.create({
+      user: userForPost,
+      cast,
+      imageUrl: imageUrl || null,
+      scope: scope || "Home",
+    }); 
+    // Revalidate home path
+ revalidatePath("/");
+ 
+    const postPlain = postCreated.toObject({ getters: true, versionKey: false });
+    console.log("Plain post object:", postPlain);
+return postPlain;
+   
+   
 
-    if (!res.ok) {
-      const errData = await res.json();
-      console.error("API error:", errData.error);
-      throw new Error(errData.error || "Failed to submit post");
-    }
-
-    const data = await res.json();
-    return data.post;
   } catch (err) {
     console.error("submitCastAction error:", err);
     throw err;

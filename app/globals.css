@@ -8,11 +8,11 @@
     }
     
     .icon svg {
-      @apply fill-white stroke-gray-300;
+      @apply fill-white stroke-gray-600;
     }
 
     .icon p {
-      @apply text-gray-400 text-xs;
+      @apply text-gray-600 text-xs;
     }
 
     .postButton {

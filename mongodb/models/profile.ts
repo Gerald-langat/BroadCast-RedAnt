@@ -6,11 +6,11 @@ export interface IProfileBase {
   firstName: string;
   lastName: string;
   nickName: string;
-  county: string;
-  constituency: string;
-  ward: string;
-  userImg?: string;
-  acceptedTerms: boolean;
+  county?: string;
+  constituency?: string;
+  ward?: string;
+  userImg: string;
+  acceptedTerms?: boolean;
 }
 
 export interface IProfile extends Document, IProfileBase {
