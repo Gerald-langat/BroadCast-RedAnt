@@ -1,9 +1,9 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { IPostDocument } from "@/mongodb/models/post";
-import { Button } from "./ui/button";
-import { SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
 import { IProfileBase, Profile } from "@/mongodb/models/profile";
+import Link from "next/link";
+import { Building2Icon, HomeIcon, MessageSquareMoreIcon, NewspaperIcon, PauseCircleIcon, User2Icon } from "lucide-react";
 
 async function UserInformation({ posts }: { posts: IPostDocument[] }) {
   const user = await currentUser();
@@ -25,8 +25,9 @@ async function UserInformation({ posts }: { posts: IPostDocument[] }) {
  
 
   return (
-    <div className="flex flex-col justify-center items-center bg-white mr-6 rounded-lg border py-4">
-      <Avatar className="h-16 w-16 mb-5">
+    <>
+    <div className="flex flex-col justify-center items-center  mr-6 rounded-lg border py-4">
+        <Avatar className="h-16 w-16 mb-5">
         {user?.id ? (
           <AvatarImage src={userDB?.userImg} />
         ) : (
@@ -38,7 +39,6 @@ async function UserInformation({ posts }: { posts: IPostDocument[] }) {
         </AvatarFallback>
       </Avatar>
 
-      <SignedIn>
         <div className="text-center">
           <p className="font-semibold">
             {userDB?.firstName} {userDB?.lastName}
@@ -48,19 +48,14 @@ async function UserInformation({ posts }: { posts: IPostDocument[] }) {
             @{userDB?.nickName}
           </p>
         </div>
-      </SignedIn>
-
-      <SignedOut>
-        <div className="text-center space-y-2">
-          <p className="font-semibold">You are not signed in</p>
-
-          <Button asChild className="bg-[#0B63C4] text-white">
-            <SignInButton>Sign in</SignInButton>
+      <hr className="w-full  my-5" />
+         
+      {/* <SignedIn>
+             <Button asChild className="bg-[#0B63C4] text-white">
+            <SignInButton>Sign out</SignInButton>
           </Button>
-        </div>
-      </SignedOut>
+      </SignedIn> */}
 
-      <hr className="w-full border-gray-200 my-5" />
 
       <div className="flex justify-between w-full px-4 text-sm">
         <p className="font-semibold text-gray-400">Posts</p>
@@ -72,6 +67,26 @@ async function UserInformation({ posts }: { posts: IPostDocument[] }) {
         <p className="text-blue-400">{userComments?.length}</p>
       </div>
     </div>
+    <div className='flex flex-col space-y-1  mr-6 rounded-lg border p-4 mt-1'>
+        <Link href="/" className='flex gap-2 items-center'><HomeIcon size={18} />
+        Home</Link>
+        <Link href="/media" className='flex gap-2 items-center'><PauseCircleIcon size={18} />
+        Media</Link>
+        <Link href="/news" className='flex gap-2 items-center'><NewspaperIcon size={18} />
+        News</Link>
+        <Link href="/marketPlace" className='flex gap-2 items-center'><Building2Icon size={18} />
+        MarketPlace</Link>
+        <Link href="/dashboard" className='flex gap-2 items-center'><MessageSquareMoreIcon size={18} />
+        Messages</Link>
+        <Link href='/profile' className='flex gap-2 items-center'>
+        <User2Icon size={18} />
+        Profile
+        </Link>
+      </div>      
+        <div className='py-3'>
+          <h2 className='text-xl'>Members</h2>
+        </div>
+        </>
   );
 }
 

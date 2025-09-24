@@ -107,7 +107,8 @@ function PostOptions({
         >
           {/* If user has liked the post, show filled thumbs up icon */}
           <ThumbsUpIcon
-            className={cn("mr-1", liked && "text-[#4881c2] fill-[#4881c2]")}
+          size={16}
+             className={cn("mr-1", liked && "text-[#4881c2] fill-[#4881c2]")}
           />
           Like
         </Button>
@@ -118,6 +119,7 @@ function PostOptions({
           onClick={() => setIsCommentsOpen(!isCommentsOpen)}
         >
           <MessageCircle
+          size={16}
             className={cn(
               "mr-1",
               isCommentsOpen && "text-gray-600 fill-gray-600"
@@ -127,12 +129,14 @@ function PostOptions({
         </Button>
 
         <Button variant="ghost" className="postButton">
-          <Repeat2 className="mr-1" />
+        
+          <Repeat2   size={16} className="mr-1" />
           Repost
         </Button>
 
         <Button variant="ghost" className="postButton">
-          <Send className="mr-1" />
+          
+          <Send size={16} className="mr-1" />
           Send
         </Button>
       </div>

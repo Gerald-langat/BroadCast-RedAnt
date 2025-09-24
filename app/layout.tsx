@@ -12,27 +12,29 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className="min-h-screen flex flex-col">
-          <ScopeProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
+    <html lang="en" suppressHydrationWarning>
+      <body className="min-h-screen flex flex-col">
+        <ClerkProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <ScopeProvider>
               <Toaster position="top-center" />
-              <ConditionalHeader />
-              <div className="bg-[#F4F2ED] flex-1 w-full">
-                <main className="max-w-6xl mx-auto">{children}</main>
+              
+              <div>
+                <ConditionalHeader />
+                <main className="max-w-6xl mx-auto flex flex-col">
+                  {children}
+                </main>
               </div>
-            </ThemeProvider>
-          </ScopeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+            </ScopeProvider>
+          </ThemeProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }
