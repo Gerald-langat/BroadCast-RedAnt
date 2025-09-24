@@ -82,6 +82,10 @@ function NewChatDialog({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const removeUser = (userId: string) => {
+    setSelectedUsers((prev) => prev.filter((user) => user.userId !== userId))
+  }
+
   const handleCreateChat = async () => {
     const totalMembers = selectedUsers.length + 1;
     const isGroupChat = totalMembers > 2;

@@ -68,12 +68,11 @@ function Members() {
         console.error("Follow/unfollow error", err);
       }
     };
-
   return (  
       <div className='flex flex-col space-y-1  mr-6 rounded-lg border p-4 mt-1'>
      <p>members{users.length}</p> 
      {users.map(user => (
-      <div className="flex justify-between items-center gap-2 flex" key={user._id}>
+      <div className="flex justify-between items-center gap-2 " key={user._id}>
         <Link href={`/profile/${user?.userId}`} className="flex items-center gap-2" >
            <Image src={user.userImg || "/logo/broadcast.jpg"} 
             width={200}
@@ -88,7 +87,7 @@ function Members() {
             onClick={() => handleFollow(user.userId)}
             className="px-3 py-1 rounded-md border text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
           >
-            {following.includes(user.userId) ? "Unfollow" : "Follow"}
+            {following.includes(user?.userId) ? "Unfollow" : "Follow"}
           </button>
       </div>
         

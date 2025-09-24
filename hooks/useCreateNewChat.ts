@@ -5,22 +5,13 @@ export const useCreateNewChat = () => {
     members,
     createdBy,
     groupName,
-    userToken,
   }: {
     members: string[];
     createdBy: string;
     groupName?: string;
-    userToken: string;
   }) => {
     // 🔑 Connect user if not already connected
-    if (!streamClient.userID) {
-      await streamClient.connectUser(
-        {
-          id: createdBy,
-        },
-        userToken
-      );
-    }
+    
 
     const isGroupChat = members.length > 2;
 
@@ -55,7 +46,8 @@ export const useCreateNewChat = () => {
       .toString(36)
       .substring(2, 15)}`;
 
-    const channelData: {
+      try {
+         const channelData: {
       members: string[];
       created_by_id: string;
       name?: string;
@@ -67,7 +59,7 @@ export const useCreateNewChat = () => {
     if (isGroupChat) {
       channelData.name = groupName || `Group chat (${members.length} members)`;
     }
-
+    
     const channel = streamClient.channel(
       isGroupChat ? "team" : "messaging",
       channelId,
@@ -77,7 +69,13 @@ export const useCreateNewChat = () => {
     await channel.watch({ presence: true });
 
     return channel;
-  };
+
+
+      } catch (error) {
+        throw error
+      }
+
+     };
 
   return createNewChat;
 };

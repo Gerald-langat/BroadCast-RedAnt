@@ -29,14 +29,14 @@ type UserProfile = {
   userId: string
 };
 
-export function AppSidebar() {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const [loading, setLoading] = useState(true);
       const [profile, setProfile] = useState<UserProfile | null>(null);
     const { user } = useUser();
 
     const filters: ChannelFilters = {
-  members: { $in: [profile?.userId ?? ""] }, // not Clerk user.id
-  type: "messaging"
+  members: { $in: [profile?.userId as string] }, // not Clerk user.id
+  type: {$in: ["messaging", "team"] }
 };
 
     const options = { presence: true, state: true };

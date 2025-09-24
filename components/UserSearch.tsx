@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Input } from "./ui/input";
+import { useUser } from "@clerk/nextjs";
 
 type Doc = {
   firstName: string;
@@ -19,12 +20,9 @@ interface UserSearchProps {
 
 function UserSearch({ users, onSelectUser, className }: UserSearchProps) {
   const [query, setQuery] = useState("");
+ const { user } = useUser();
 
-  const filtered = users.filter((u) =>
-    `${u.firstName} ${u.lastName} ${u.nickName}`
-      .toLowerCase()
-      .includes(query.toLowerCase())
-  );
+  const filtered = users.filter((u) => u.userId !== user?.id);
 
   return (
     <div className={className}>

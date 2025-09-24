@@ -14,13 +14,7 @@ const { channel, setActiveChannel } = useChatContext()
 const { setOpen } = useSidebar();
 const [isSynced, setIsSynced] = useState(false);
  const { user, loading, syncUser } = useStreamUser();
-useEffect(() => {
-  const sync = async () => {
-    await syncUser(); // from your UserSyncWrapper
-    setIsSynced(true);
-  };
-  sync();
-}, []);
+
 
 const handleCall = () => {
   if (!channel) return;
@@ -51,7 +45,7 @@ try {
 
   return (
     <div className="flex flex-col w-full flex-1">
-      {isSynced && channel ? (
+      {channel ? (
         <Channel>
           <Window>
             <div className="flex items-center justify-between">
