@@ -4,13 +4,10 @@ import { IPostDocument } from "@/mongodb/models/post";
 import { IProfileBase, Profile } from "@/mongodb/models/profile";
 import Link from "next/link";
 import { Building2Icon, HomeIcon, MessageSquareMoreIcon, NewspaperIcon, PauseCircleIcon, User2Icon } from "lucide-react";
+import Members from "./Members";
 
 async function UserInformation({ posts }: { posts: IPostDocument[] }) {
   const user = await currentUser();
-
-  const firstName = user?.firstName as string;
-  const lastName = user?.lastName as string;
-  const imageUrl = user?.imageUrl as string;
 
   const userPosts = posts?.filter((post) => post.user.userId === user?.id);
 
@@ -31,7 +28,7 @@ async function UserInformation({ posts }: { posts: IPostDocument[] }) {
         {user?.id ? (
           <AvatarImage src={userDB?.userImg} />
         ) : (
-          <AvatarImage src="/logo/broadcast.jpg" />
+          <AvatarImage src={userDB?.firstName} />
         )}
         <AvatarFallback>
           {userDB?.firstName?.charAt(0)}
@@ -40,7 +37,7 @@ async function UserInformation({ posts }: { posts: IPostDocument[] }) {
       </Avatar>
 
         <div className="text-center">
-          <p className="font-semibold">
+          <p className="font-semibold text-sm">
             {userDB?.firstName} {userDB?.lastName}
           </p>
 
@@ -78,13 +75,13 @@ async function UserInformation({ posts }: { posts: IPostDocument[] }) {
         MarketPlace</Link>
         <Link href="/dashboard" className='flex gap-2 items-center'><MessageSquareMoreIcon size={18} />
         Messages</Link>
-        <Link href='/profile' className='flex gap-2 items-center'>
+        {/* <Link href='/profile' className='flex gap-2 items-center'>
         <User2Icon size={18} />
         Profile
-        </Link>
+        </Link> */}
       </div>      
         <div className='py-3'>
-          <h2 className='text-xl'>Members</h2>
+          <Members />
         </div>
         </>
   );

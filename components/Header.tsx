@@ -98,7 +98,7 @@ const [query, setQuery] = useState("");
   </form>
 
   {(loading || results.length > 0) && (
-    <div className="absolute left-2 right-2 mt-2 bg-gray-900 border rounded-md max-w-md shadow-lg max-h-60 overflow-y-auto z-50">
+    <div className="absolute left-2 right-2 mt-2 border rounded-md max-w-md shadow-lg max-h-60 overflow-y-auto z-50 bg-white  dark:bg-neutral-800">
       {loading && (
         <div className="flex items-center gap-2 p-2 text-sm text-gray-500">
           <span>Searching...</span>
@@ -111,7 +111,7 @@ const [query, setQuery] = useState("");
           <Link
             href={`/profile/${s?.userId}`}
             key={s._id?.toString()}
-            className="flex items-center p-2 gap-2 rounded-md transition hover:bg-gray-800"
+            className="flex items-center p-2 gap-2 rounded-md transition hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             <img
               src={s.userImg}

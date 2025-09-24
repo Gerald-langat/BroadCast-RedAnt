@@ -5,7 +5,16 @@ import Header from "./Header";
 
 export default function ConditionalHeader() {
   const pathname = usePathname();
-  const showHeader = !pathname.startsWith("/auth");
-  if (!showHeader) return null;
+
+  // List of folders or routes where Header should NOT appear
+  const excludedPaths = ["/auth", "/profile", "/settings"];
+
+  // Check if pathname starts with any excluded prefix
+  const hideHeader = excludedPaths.some((path) =>
+    pathname.startsWith(path)
+  );
+
+  if (hideHeader) return null;
+
   return <Header />;
 }

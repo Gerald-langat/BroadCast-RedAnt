@@ -18,7 +18,7 @@ function Post({ post }: { post: IPostDocument }) {
   const isAuthor = user?.id === post.user.userId;
   return (
     <div className="rounded-md border">
-      <div className="p-4 flex space-x-2">
+      <div className="p-4 flex space-x-2 items-center">
         <div>
           <Avatar>
             <AvatarImage src={post.user.userImg} />
@@ -33,15 +33,10 @@ function Post({ post }: { post: IPostDocument }) {
           <div>
             <div className="font-semibold">
               {post.user.firstName} {post.user.lastName}{" "}
-              {isAuthor && (
-                <Badge className="ml-2" variant="secondary">
-                  Author
-                </Badge>
-              )}
+              
             </div>
             <p className="text-xs text-gray-400">
-              @{post.user.firstName}
-              {post.user.firstName}-{post.user.userId.toString().slice(-4)}
+              @{post.user.nickName}
             </p>
 
             <p className="text-xs text-gray-400">

@@ -4,27 +4,17 @@
 import { ThemeToggle } from '@/components/themeToggle';
 import { Button } from '@/components/ui/button'
 import { useCreateNewChat } from '@/hooks/useCreateNewChat';
+import { IProfileBase } from '@/mongodb/models/profile';
 import { useUser } from '@clerk/nextjs';
 import {  LayoutPanelLeft, MessageCircleMore, MoonIcon, Plus, Settings, SunIcon } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation';
 import { use, useEffect, useState } from 'react';
 
-type Users = {
-   id:    string;
-  userId:  string; 
-  firstName:  string;
-  lastName:  string;
-  nickName:  string;
-  imageUrl: string;
-  userImg: string;
-  casts: {
-    imageUrl: string
-  }[]
-};
+
 
 function Page({ params }: { params: Promise<{ userId: string }> }) {
-     const [userData, setUserData] = useState<Users | null>(null);
+     const [userData, setUserData] = useState<IProfileBase | null>(null);
   const [loading, setLoading] = useState(true);
      const router = useRouter();
       const { user } = useUser();
@@ -37,7 +27,7 @@ function Page({ params }: { params: Promise<{ userId: string }> }) {
         setLoading(true);
         const res = await fetch(`/api/profile?userId=${userId}`);
         if (!res.ok) throw new Error("Failed to fetch user data");
-        const data: Users = await res.json();
+        const data: IProfileBase = await res.json();
         setUserData(data);
       } catch (err) {
         console.error(err);
@@ -76,7 +66,7 @@ function Page({ params }: { params: Promise<{ userId: string }> }) {
   const me = userId === user?.id
 
   return (
-    <div className='max-w-3xl mx-auto flex min-h-screen'>
+    <div className='max-w-3xl mx-auto flex min-h-screen  w-full'>
       <div className='w-full p-4'>
         <div className='flex w-full justify-between'>
              <LayoutPanelLeft size={20}/>
@@ -86,7 +76,7 @@ function Page({ params }: { params: Promise<{ userId: string }> }) {
        
         <div className='flex items-center justify-between'>
             <div className='flex items-center'>
-              <Image src={userData?.imageUrl || "/images/kettle.jpg"} width={200} height={200} alt="profile" className='h-24 w-24 rounded-full p-2'/>
+              <Image src={userData?.userImg || "/images/kettle.jpg"} width={200} height={200} alt="profile" className='h-24 w-24 rounded-full p-2'/>
               <div className='border-[1px] rounded-full absolute ml-16 bg-green-600 mt-16'>
                 <Plus size={20} className='text-white font-mono'/>
               </div>
@@ -102,26 +92,25 @@ function Page({ params }: { params: Promise<{ userId: string }> }) {
               Chat
             </div>
                   )}
-              
-            {me && (
-              <Button variant='outline'>
-            Verify Account
-            </Button>
-            )}
+          
             
             </div>         
         </div>
         
-        <div className='w-full justify-between flex'>
+        <div className='w-full space-x-4 flex'>
             {me && (
        <Button variant='outline' className='w-1/3'>
             Edit Profile
         </Button>
             )}
-            {!me && (
+            {!me ? (
               <Button variant='outline' className='w-1/2 border-amber-400'>
             Buy me coffee
         </Button>
+            ):(
+              <Button variant='outline'>
+            Verify Account
+            </Button>
             )}
         
         </div> 
@@ -133,7 +122,7 @@ function Page({ params }: { params: Promise<{ userId: string }> }) {
         </div>
 
        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 w-full max-w-3xl mx-auto">
-        {userData?.casts?.map((cast, index) => (
+        {/* {userData?.casts?.map((cast, index) => (
           <Image
            key={index}
             src={cast.imageUrl || "/images/kettle.jpg"}
@@ -142,7 +131,7 @@ function Page({ params }: { params: Promise<{ userId: string }> }) {
             height={300}
             className="w-full h-46  rounded-lg"
           />
-        ))}
+        ))} */}
       </div>
 
       </div>

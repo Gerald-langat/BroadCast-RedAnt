@@ -228,7 +228,7 @@ if (file) {
                {/* Category Dropdown */}
             <Popover>
               <PopoverTrigger className="border-[1px] p-2 rounded-lg flex justify-start">{Category}</PopoverTrigger>
-              <PopoverContent className="flex flex-col space-y-1">
+              <PopoverContent className="flex flex-col space-y-1 bg-gray-100 ">
                 {[
                   "Personal Account",
                   "Business Account",
@@ -253,12 +253,12 @@ if (file) {
             {/* County Dropdown */}
             <Popover>
               <PopoverTrigger className="border-[1px] p-2 rounded-lg flex justify-start">{County}</PopoverTrigger>
-              <PopoverContent className="flex flex-col space-y-1  max-h-56 overflow-y-scroll">
+              <PopoverContent className="flex flex-col space-y-1  max-h-56 overflow-y-scroll bg-gray-100">
                 {counties.map((county) => (
                   <div
                     key={`{county.countyCode}-${county.name}`}
                     onClick={() => setSelectedCounty(county.name)}
-                    className="cursor-pointer px-2"
+                    className="cursor-pointer px-2 hover:bg-gray-200"
                   >
                     {county.name}
                   </div>
@@ -269,12 +269,12 @@ if (file) {
             {/* Constituency Dropdown */}
             <Popover>
               <PopoverTrigger className="border-[1px] p-2 rounded-lg flex justify-start">{Constituency}</PopoverTrigger>
-              <PopoverContent className="flex flex-col space-y-1">
+              <PopoverContent className="flex flex-col space-y-1 bg-gray-100">
                 {constituencies.map((c) => (
                   <div
                     key={c.code}
                     onClick={() => setSelectedConstituency(c.name)}
-                    className="cursor-pointer px-2"
+                    className="cursor-pointer px-2 hover:bg-gray-200"
                   >
                     {c.name}
                   </div>
@@ -285,12 +285,12 @@ if (file) {
             {/* Ward Dropdown */}
             <Popover>
               <PopoverTrigger className="border-[1px] p-2 rounded-lg flex justify-start">{Ward}</PopoverTrigger>
-              <PopoverContent className="flex flex-col space-y-1">
+              <PopoverContent className="flex flex-col space-y-1 bg-gray-100">
                 {wards.map((w) => (
                   <div
                     key={w.code}
                     onClick={() => setSelectedWard(w.name)}
-                    className="cursor-pointer px-2"
+                    className="cursor-pointer px-2 hover:bg-gray-200"
                   >
                     {w.name}
                   </div>

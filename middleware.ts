@@ -1,11 +1,22 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-export default clerkMiddleware();
+const isProtectedRoute = createRouteMatcher(["/(.*)"]);
+
+export default clerkMiddleware(async (auth, req) => {
+  if (isProtectedRoute(req)) {
+    // ❌ auth.protect() no longer exists
+    // ✅ Instead, use `auth().userId`
+    if (!auth().userId) {
+      return auth().redirectToSignIn(); // Redirect if not signed in
+    }
+  }
+});
 
 export const config = {
   matcher: [
-    "/((?!.*\\..*|_next).*)", // Don't run middleware on static files
-    "/", // Run middleware on index page
+    // Skip Next.js internals and static files
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    // Always run for API routes
     "/(api|trpc)(.*)",
   ],
 };

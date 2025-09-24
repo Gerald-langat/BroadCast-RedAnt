@@ -10,6 +10,9 @@ export interface IPostBase {
   imageUrl?: string;
   comments?: IComment[];
   likes?: string[];
+  recastOf?: string;   // 👈 reference to original post
+  recasts: string[];
+  recastedBy?: string | null; // 👈 new
 }
 
 export interface IPost extends IPostBase, Document {
@@ -49,6 +52,10 @@ const PostSchema = new Schema<IPostDocument>(
     imageUrl: { type: String },
     comments: { type: [Schema.Types.ObjectId], ref: "Comment", default: [] },
     likes: { type: [String] },
+    recastOf: { type: String, default: null },   // 👈 add this
+    recasts: { type: [String], default: [] },
+    recastedBy: { type: String, default: null }, // userId of recaster
+
   },
   {
     timestamps: true,

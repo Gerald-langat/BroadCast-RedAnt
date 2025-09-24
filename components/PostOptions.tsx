@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { UnlikePostRequestBody } from "@/app/api/posts/[post_id]/unlike/route";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
+import Link from "next/link";
 
 function PostOptions({
   postId,
@@ -23,6 +24,48 @@ function PostOptions({
   const { user } = useUser();
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(post.likes);
+  const [recasted, setRecasted] = useState(false);
+const [recasts, setRecasts] = useState(post.recasts ?? []);
+
+useEffect(() => {
+  if (user?.id && post.recasts?.includes(user.id)) {
+    setRecasted(true);
+  }
+}, [post, user]);
+
+const toggleRecast = async () => {
+  if (!user?.id) {
+    toast.error("You must be signed in to recast");
+    return;
+  }
+
+  const originalRecasted = recasted;
+  const originalRecasts = recasts;
+
+  const newRecasts = recasted
+    ? recasts.filter((id) => id !== user.id)
+    : [...(recasts ?? []), user.id];
+
+  setRecasted(!recasted);
+  setRecasts(newRecasts);
+
+  const res = await fetch(`/api/posts/${postId}/recast`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: user.id }),
+  });
+
+  if (!res.ok) {
+    setRecasted(originalRecasted);
+    setRecasts(originalRecasts);
+    toast.error("Failed to recast");
+    return;
+  }
+
+  const newData = await res.json();
+  setRecasts(newData);
+};
+
 
   useEffect(() => {
     if (user?.id && post.likes?.includes(user.id)) {
@@ -86,8 +129,19 @@ function PostOptions({
             </p>
           )}
         </div>
-
+{post.recastedBy && (
+            <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              🔁 Recasted by{" "}
+              <Link
+                href={`/profile/${post.recastedBy}`}
+                className="font-medium text-blue-500 hover:underline"
+              >
+                {post.recastedBy}
+              </Link>
+            </div>
+          )}
         <div>
+         
           {post?.comments && post.comments.length > 0 && (
             <p
               onClick={() => setIsCommentsOpen(!isCommentsOpen)}
@@ -128,10 +182,10 @@ function PostOptions({
           Comment
         </Button>
 
-        <Button variant="ghost" className="postButton">
+        <Button variant="ghost" className="postButton"  onClick={toggleRecast}>
         
           <Repeat2   size={16} className="mr-1" />
-          Repost
+            {recasted ? "Recasted" : "Recast"}
         </Button>
 
         <Button variant="ghost" className="postButton">

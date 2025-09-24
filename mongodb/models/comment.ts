@@ -16,9 +16,10 @@ const CommentSchema = new Schema<IComment>(
   {
     user: {
       userId: { type: String, required: true },
-      userImg: { type: String, required: true },
       firstName: { type: String, required: true },
-      lastName: { type: String },
+      lastName: { type: String, required: true },
+      nickName: { type: String, required: true },
+      userImg: { type: String, required: true }
     },
     text: { type: String, required: true },
   },
