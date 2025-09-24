@@ -19,6 +19,8 @@ import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { IProfileBase } from "./../mongodb/models/profile";
 import { submitCastAction } from "@/app/actions/submitCastAction";
+import EmojiPicker from "emoji-picker-react";
+
 
 
 function PostForm() {
@@ -38,6 +40,8 @@ function PostForm() {
   const [statusText, setStatusText] = useState("");
   const [status, setStatus] = useState<any[]>([]);
   const [profile, setProfile] = useState<IProfileBase | null>(null);
+  const [showPicker, setShowPicker] = useState(false);
+
 
   // fetch profile
   useEffect(() => {
@@ -189,7 +193,25 @@ const handleSubmit = async (
                 size={20}
                 onClick={() => fileInputRef.current?.click()}
               />
-              <SmilePlus size={20} />
+              <button onClick={() => setShowPicker(!showPicker)}>
+                  <SmilePlus size={20} />
+                </button>
+              <div className="relative">
+               {showPicker && (
+                <div className="absolute z-50 w-16 h-10">
+                  <EmojiPicker
+                    onEmojiClick={(emojiData, event) => {
+                      const textarea = ref.current?.cast
+                      if (textarea) {
+                        textarea.value += emojiData.emoji // 👈 correct field
+                        textarea.focus()
+                      }
+                    }}
+                  />
+                </div>
+              )}
+
+              </div>
             </div>
 
             {/* Scope Buttons */}

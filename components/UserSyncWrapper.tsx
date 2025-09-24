@@ -19,7 +19,7 @@ export const useStreamUser = () => {
   const fetchUser = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/user");
+      const res = await fetch("/api/profile");
       if (!res.ok) throw new Error("Failed to fetch user");
       const data: UserProfile = await res.json();
       setUser(data);

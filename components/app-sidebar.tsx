@@ -10,10 +10,9 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { Button } from "./ui/button"
-import { UserButton, useUser } from "@clerk/nextjs"
+import { useUser } from "@clerk/nextjs"
 import { ChannelFilters, ChannelSort } from "stream-chat";
 import { ChannelList } from "stream-chat-react";
-import { ChartBarIcon } from "lucide-react";
 import NewChatDialog from "./NewChatDialog";
 import { useEffect, useState } from "react";
 
@@ -50,7 +49,7 @@ export function AppSidebar() {
       const fetchProfile = async () => {
         try {
           setLoading(true);
-          const res = await fetch("/api/user");
+          const res = await fetch("/api/profile");
           if (!res.ok) throw new Error("Failed to fetch profile");
           const data: UserProfile = await res.json();
           setProfile(data);

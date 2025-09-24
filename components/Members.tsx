@@ -29,7 +29,21 @@ function Members() {
         fetchUserScope();
       }, []);
 
-      
+        // 🔹 Load following list when component mounts
+  useEffect(() => {
+    const fetchFollowing = async () => {
+      try {
+        const res = await fetch(`/api/followers?userId=${user?.id}`);
+        const data = await res.json();
+        // assume API returns an array of following userIds
+        setFollowing(data.following || []);
+      } catch (err) {
+        console.error("Error fetching following list", err);
+      }
+    };
+
+    if (user?.id) fetchFollowing();
+  }, [user?.id]);
 
     const handleFollow = async (targetUserId: string) => {
       try {
@@ -57,7 +71,7 @@ function Members() {
 
   return (  
       <div className='flex flex-col space-y-1  mr-6 rounded-lg border p-4 mt-1'>
-     <p>members</p> 
+     <p>members{users.length}</p> 
      {users.map(user => (
       <div className="flex justify-between items-center gap-2 flex" key={user._id}>
         <Link href={`/profile/${user?.userId}`} className="flex items-center gap-2" >
@@ -67,8 +81,8 @@ function Members() {
             alt="user-image"
             className="w-8 h-8 rounded-full"
             /> 
-            <p className="text-sm">{user.firstName}</p>
-            <p className="text-sm">{user.nickName}</p>
+            <p className="text-sm min-w-13 max-w-13 truncate">{user.firstName}</p>
+            <p className="text-sm min-w-13 max-w-13 truncate">{user.nickName}</p>
         </Link>
         <button
             onClick={() => handleFollow(user.userId)}
