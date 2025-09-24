@@ -1,5 +1,6 @@
 import connectDB from "@/mongodb/db";
 import { Followers } from "@/mongodb/models/followers";
+import { Profile } from "@/mongodb/models/profile";
 import { NextResponse } from "next/server";
 
 // GET function is used to get all followers of a user
@@ -17,13 +18,15 @@ export async function GET(request: Request) {
       );
     }
 
-    const followers = await Followers.getAllFollowers(user_id);
+     // Get following list
+    const followingDocs = await Followers.find({ follower: user_id });
 
-    if (!followers) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+    // Fetch profiles of those users
+    const followingProfiles = await Profile.find({
+      userId: { $in: followingDocs.map((f) => f.following) },
+    }).lean();
 
-    return NextResponse.json(followers);
+    return NextResponse.json(followingProfiles, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       { error: "An error occurred while fetching followers" },

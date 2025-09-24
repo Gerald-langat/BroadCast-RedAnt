@@ -8,6 +8,8 @@ export interface AddPostRequestBody {
   user: IProfileBase;
   cast: string;
   imageUrl?: string | null;
+  scope: string;      // required
+  recasts: string[]
 }
 
 export async function POST(request: Request) {
@@ -26,6 +28,8 @@ export async function POST(request: Request) {
       user,
       cast,
       ...(imageUrl && { imageUrl }),
+       scope: "Home",      // or however you handle scope
+       recasts: [], 
     };
 
     console.log("Post data before create:", postData);

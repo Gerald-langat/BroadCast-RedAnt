@@ -80,7 +80,7 @@ async function UserInformation({ posts }: { posts: IPostDocument[] }) {
         Profile
         </Link> */}
       </div>      
-        <div className='py-3'>
+        <div className=''>
           <Members />
         </div>
         </>
