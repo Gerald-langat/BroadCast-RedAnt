@@ -37,6 +37,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       console.error(err);
     }
   }, []);
+
   // Memoize the Stream user
   const streamUser = useMemo(() => {
     if (!user?.userId) return null;
@@ -83,6 +84,10 @@ function Layout({ children }: { children: React.ReactNode }) {
       newClient.disconnectUser().catch(console.error);
     };
   }, [streamUser, tokenProvider]);
+
+   useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
 
   // Join a call
   useEffect(() => {
