@@ -1,7 +1,6 @@
 "use client"
 
 import { Chat } from "stream-chat-react"
-
 import streamClient from "@/lib/stream";
 import Link from "next/link";
 import {   SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -11,6 +10,7 @@ import "stream-chat-react/dist/css/v2/index.css";
 
 
 function Layout({ children }: { children: React.ReactNode }) {
+    
     return (
      
 
@@ -18,7 +18,6 @@ function Layout({ children }: { children: React.ReactNode }) {
           <SidebarProvider>
              <AppSidebar />
                 <SidebarInset>
-                  
                     <header className="flex h-16 shrink-0 items-center gap-2 px-4">
                        <SidebarTrigger className="-ml-1" />
                        <Separator 

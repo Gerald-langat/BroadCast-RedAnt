@@ -5,15 +5,13 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { useStreamUser } from "@/components/UserSyncWrapper";
 import { VideoIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { Channel, ChannelHeader, MessageInput, MessageList, Thread, useChatContext, Window } from "stream-chat-react";
 
 function Dashboard() {
 const router = useRouter();
 const { channel, setActiveChannel } = useChatContext()
 const { setOpen } = useSidebar();
-const [isSynced, setIsSynced] = useState(false);
- const { user, loading, syncUser } = useStreamUser();
+ const { user } = useStreamUser();
 
 
 const handleCall = () => {
@@ -48,31 +46,46 @@ try {
       {channel ? (
         <Channel>
           <Window>
-            <div className="flex items-center justify-between">
-              {channel.data?.member_count === 1 ? (
-                <ChannelHeader title="Everyone has left this chat!"/>
-              ): (
-                <ChannelHeader />
-              )}
-              <div className="flex space-x-2 items-center">
-                <Button variant="outline" className="flex items-center gap-2" onClick={handleCall}>
-                  <VideoIcon className="w-4 h-4"/>
-                  Video Call
-                </Button>
+           <div className="flex flex-col min-h-screen">
+  {/* Header */}
+  <div className="flex items-center justify-between p-2">
+    {channel.data?.member_count === 1 ? (
+      <ChannelHeader title="Everyone has left this chat!" />
+    ) : (
+      <ChannelHeader />
+    )}
+    <div className="flex space-x-2 items-center">
+      <Button
+        variant="outline"
+        className="flex items-center gap-2"
+        onClick={handleCall}
+      >
+        <VideoIcon className="w-4 h-4" />
+        Video Call
+      </Button>
 
-                <Button variant="outline" className="flex items-center gap-2" onClick={handleLeaveChat}>
-                  <VideoIcon className="text-red-500 hover:text-red-600 hover:bg-red-50"/>
-                  Leave Chat
-                </Button>
-              </div>
-             </div>
-             <div className="flex-1">
-              <MessageList />
-              </div>
-              <div className="sticky bottom-0 w-full">
-                <MessageInput />
-              </div>
-            
+      <Button
+        variant="outline"
+        className="flex items-center gap-2"
+        onClick={handleLeaveChat}
+      >
+        <VideoIcon className="text-red-500 hover:text-red-600 hover:bg-red-50" />
+        Leave Chat
+      </Button>
+    </div>
+  </div>
+
+  {/* Messages */}
+  <div className="flex-1 overflow-y-auto px-2">
+    <MessageList />
+  </div>
+
+  {/* Input pinned bottom */}
+  <div className="sticky bottom-0 w-full border-t bg-background p-2">
+    <MessageInput />
+  </div>
+</div>
+          
           </Window>
           <Thread />
         </Channel>

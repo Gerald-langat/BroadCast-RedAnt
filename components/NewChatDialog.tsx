@@ -96,6 +96,7 @@ function NewChatDialog({ children }: { children: React.ReactNode }) {
       groupName: isGroupChat ? groupName.trim() || undefined : undefined,
     });
 
+    
     setActiveChannel(channel);
     setSelectedUsers([]);
     setGroupName("");
@@ -129,7 +130,7 @@ function NewChatDialog({ children }: { children: React.ReactNode }) {
                 {selectedUsers.map((user) => (
                   <div
                     key={user.userId}
-                    className="flex items-center justify-between p-2 bg-muted/50 border border-border rounded-lg"
+                    className="flex items-center justify-between p-2  border border-border rounded-lg"
                   >
                     <div className="flex items-center space-x-2">
                       <Image
@@ -151,7 +152,7 @@ function NewChatDialog({ children }: { children: React.ReactNode }) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleSelectUser(user)}
+                      onClick={() => removeUser(user.userId)}
                     >
                       Remove
                     </Button>

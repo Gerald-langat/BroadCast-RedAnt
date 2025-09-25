@@ -1,9 +1,11 @@
 "use client"
 
 import StatusCard from "@/components/StatusCard";
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
 import { useSidebar } from "@/components/ui/sidebar";
 import { CallControls, CallingState, SpeakerLayout, useCallStateHooks } from "@stream-io/video-react-sdk"
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -64,8 +66,10 @@ if(callingState !== CallingState.JOINED) {
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
         <CallControls onLeave={handleLeave}/>
       </div>
+      
       {participants.length === 1 && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        
             <div className="bg-white rounded-2xl p-8 max-w-lg w-full mx-4 shadow-2xl">
                 <div className="text-center space-y-6">
                     <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
@@ -106,6 +110,7 @@ if(callingState !== CallingState.JOINED) {
                     </div>
                 </div>
             </div>
+
         </div>
       )}
     </div>

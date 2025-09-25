@@ -15,6 +15,8 @@ import { ChannelFilters, ChannelSort } from "stream-chat";
 import { ChannelList } from "stream-chat-react";
 import NewChatDialog from "./NewChatDialog";
 import { useEffect, useState } from "react";
+import { MessageCircleDashed } from "lucide-react";
+import streamClient from "@/lib/stream";
 
 type UserProfile = {
   firstName: string;
@@ -35,9 +37,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { user } = useUser();
 
     const filters: ChannelFilters = {
-  members: { $in: [profile?.userId as string] }, // not Clerk user.id
-  type: {$in: ["messaging", "team"] }
-};
+        members: { $in: [profile?.userId as string] }, // not Clerk user.id
+        type: {$in: ["messaging", "team"] }
+      };
 
     const options = { presence: true, state: true };
     const sort: ChannelSort = {
@@ -91,29 +93,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <Button variant="outline" className="w-full">Start New Chat</Button>
                 </NewChatDialog>
                 {/* chanel list */}
-               {!loading && profile?.userId && (
-                    <ChannelList
-                      sort={sort}
-                      filters={{
-                        members: { $in: [user?.id ?? ""] }, // must match connected Stream userId
-                        type: "messaging"
-                      }}
-                      options={options}
-                      EmptyStateIndicator={() => (
-                        <div className="text-center">
-                          <div className="text-6xl mb-6 opacity-20">
-                            <ChartBarIcon size={32} />
-                          </div>
-                          <h2 className="text-xl font-medium text-foreground mb-2">Ready to chat?</h2>
-                          <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px] mx-auto">
-                            Your conversations will appear here once you start chatting with others.
-                          </p>
-                        </div>
-                      )}
-                    />
-                  )}
+                 {!loading && streamClient.userID && (                  
+                   <ChannelList
+                sort={sort}
+                filters={{
+                  members: { $in: [streamClient.userID] }, // match connected user
+                  type: "messaging",
+                }}
+                options={{ state: true, watch: true, presence: true }}
+                EmptyStateIndicator={() => (
+                  <div className="flex flex-col items-center justify-center text-center py-8 px-4">
+                    <div className="mb-4 opacity-30">
+                      <MessageCircleDashed className="w-12 h-12 text-muted-foreground" />
+                    </div>
+                    <h2 className="text-lg font-semibold text-foreground mb-1">
+                      Ready to chat?
+                    </h2>
+                    <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+                      Your conversations will appear here once you start chatting with others.
+                    </p>
+                  </div>
 
-                
+                )}
+              />               
+            )}         
             </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

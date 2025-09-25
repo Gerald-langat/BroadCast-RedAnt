@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import streamClient from "@/lib/stream";
 import { useCallback, useEffect, useState } from "react";
@@ -52,6 +52,7 @@ export const useStreamUser = () => {
         },
         tokenProvider
       );
+      console.log("✅ Stream user connected:", user.userId);
     } catch (error) {
       console.error("Failed to sync user", error);
     }
@@ -68,6 +69,13 @@ export const useStreamUser = () => {
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
+
+  // 👇 ensure connection happens after user is fetched
+  useEffect(() => {
+    if (user) {
+      syncUser();
+    }
+  }, [user, syncUser]);
 
   return { user, loading, fetchUser, syncUser, disconnectUser };
 };
