@@ -125,10 +125,12 @@ const [query, setQuery] = useState("");
         ))}
     </div>
   )}
+  
 </div>
 
+    <h2 className="md:mr-10">{scope}</h2>
 
-      <div className="flex items-center space-x-4 px-6">
+      <div className="hidden md:flex items-center space-x-4 px-6">
         <div onClick={() => setScope("Home")} className="icon cursor-pointer">
           <HomeIcon className="h-5 " />
           <p>Home</p>

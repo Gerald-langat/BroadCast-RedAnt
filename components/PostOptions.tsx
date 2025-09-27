@@ -25,13 +25,8 @@ function PostOptions({
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(post.likes);
   const [recasted, setRecasted] = useState(false);
-const [recasts, setRecasts] = useState(post.recasts ?? []);
+const [recastedBy, setRecastedBy] = useState(post.recastedBy ?? []);
 
-useEffect(() => {
-  if (user?.id && post.recasts?.includes(user.id)) {
-    setRecasted(true);
-  }
-}, [post, user]);
 
 const toggleRecast = async () => {
   if (!user?.id) {
@@ -40,14 +35,9 @@ const toggleRecast = async () => {
   }
 
   const originalRecasted = recasted;
-  const originalRecasts = recasts;
-
-  const newRecasts = recasted
-    ? recasts.filter((id) => id !== user.id)
-    : [...(recasts ?? []), user.id];
+  const originalRecastedBy = [...recastedBy];
 
   setRecasted(!recasted);
-  setRecasts(newRecasts);
 
   const res = await fetch(`/api/posts/${postId}/recast`, {
     method: "POST",
@@ -56,14 +46,15 @@ const toggleRecast = async () => {
   });
 
   if (!res.ok) {
+    // rollback if failed
     setRecasted(originalRecasted);
-    setRecasts(originalRecasts);
+    setRecastedBy(originalRecastedBy);
     toast.error("Failed to recast");
     return;
   }
 
-  const newData = await res.json();
-  setRecasts(newData);
+  const data = await res.json();
+  setRecastedBy(data.recastedBy); // ✅ update from backend
 };
 
 
@@ -129,17 +120,16 @@ const toggleRecast = async () => {
             </p>
           )}
         </div>
-{post.recastedBy && (
-            <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              🔁 Recasted by{" "}
-              <Link
-                href={`/profile/${post.recastedBy}`}
-                className="font-medium text-blue-500 hover:underline"
-              >
-                {post.recastedBy}
-              </Link>
-            </div>
-          )}
+        {recastedBy.length > 0 && (
+          <div>
+            <p className="text-xs text-gray-500">Recasted by:</p>
+            <ul className="text-xs text-gray-600">
+              {recastedBy.map((uid) => (
+                <li key={uid}>{uid}</li> 
+              ))}
+            </ul>
+          </div>
+        )}
         <div>
          
           {post?.comments && post.comments.length > 0 && (

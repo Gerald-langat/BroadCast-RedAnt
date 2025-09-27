@@ -8,44 +8,34 @@ export interface AddPostRequestBody {
   user: IProfileBase;
   cast: string;
   imageUrl?: string | null;
-  scope: string;      // required
-  recasts: string[]
+  scope: string;    
+    recastedBy: string[]
 }
 
-export async function POST(request: Request) {
-  try {
-    await connectDB();
+export async function POST(
+  req: Request,
+  { params }: { params: { post_id: string } }
+) {
+  const { userId } = await req.json(); // 👈 get current userId from request
 
-    const body: AddPostRequestBody = await request.json();
-    console.log("Incoming POST body:", body);
-
-    const { user, cast, imageUrl } = body;
-
-    if (!user || !user.userId) throw new Error("User is missing or invalid");
-    if (!cast || !cast.trim()) throw new Error("Cast text is required");
-
-    const postData: IPostBase = {
-      user,
-      cast,
-      ...(imageUrl && { imageUrl }),
-       scope: "Home",      // or however you handle scope
-       recasts: [], 
-    };
-
-    console.log("Post data before create:", postData);
-
-    const post = await Post.create(postData);
-    console.log("Post created successfully:", post);
-
-    return NextResponse.json({ message: "Post created successfully", post });
-  } catch (error: any) {
-    console.error("POST creation error:", error);
-    return NextResponse.json(
-      { error: `An error occurred while creating the post: ${error.message}` },
-      { status: 500 }
-    );
+  const post = await Post.findById(params.post_id);
+  if (!post) {
+    return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
+
+  const hasRecasted = post.recastedBy.includes(userId);
+
+  if (hasRecasted) {
+    post.recastedBy = post.recastedBy.filter((id: string) => id !== userId);
+  } else {
+    post.recastedBy.push(userId);
+  }
+
+  await post.save();
+
+  return NextResponse.json({ recastedBy: post.recastedBy });
 }
+
 
 
 export async function GET() {

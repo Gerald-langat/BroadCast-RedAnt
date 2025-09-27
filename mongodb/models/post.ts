@@ -10,9 +10,7 @@ export interface IPostBase {
   imageUrl?: string;
   comments?: IComment[];
   likes?: string[];
-  recastOf?: string;   // 👈 reference to original post
-  recasts: string[];
-  recastedBy?: string | null; // 👈 new
+  recastedBy: string[];  // 👈 new
 }
 
 export interface IPost extends IPostBase, Document {
@@ -52,10 +50,10 @@ const PostSchema = new Schema<IPostDocument>(
     imageUrl: { type: String },
     comments: { type: [Schema.Types.ObjectId], ref: "Comment", default: [] },
     likes: { type: [String] },
-    recastOf: { type: String, default: null },   // 👈 add this
-    recasts: { type: [String], default: [] },
-    recastedBy: { type: String, default: null }, // userId of recaster
-
+    recastedBy: {
+    type: [String], // store user IDs as plain strings
+    default: [],
+  },
   },
   {
     timestamps: true,
@@ -71,6 +69,23 @@ PostSchema.methods.likePost = async function (userId: string) {
 };
 
 PostSchema.methods.unlikePost = async function (userId: string) {
+  try {
+    await this.updateOne({ $pull: { likes: userId } });
+  } catch (error) {
+    console.log("error when unliking post", error);
+  }
+};
+
+
+PostSchema.methods.rePost = async function (userId: string) {
+  try {
+    await this.updateOne({ $addToSet: { likes: userId } });
+  } catch (error) {
+    console.log("error when liking post", error);
+  }
+};
+
+PostSchema.methods.unRePost = async function (userId: string) {
   try {
     await this.updateOne({ $pull: { likes: userId } });
   } catch (error) {
@@ -102,24 +117,26 @@ PostSchema.statics.getAllPosts = async function () {
       .sort({ createdAt: -1 })
       .populate({
         path: "comments",
-
         options: { sort: { createdAt: -1 } },
       })
-      .populate("likes")
-      .lean(); // lean() returns a plain JS object instead of a mongoose document
+      .lean();
 
-    return posts.map((post: IPostDocument) => ({
+    return posts.map((post: any) => ({
       ...post,
       _id: post._id.toString(),
-      comments: post.comments?.map((comment: IComment) => ({
+      comments: post.comments?.map((comment: any) => ({
         ...comment,
         _id: comment._id.toString(),
       })),
+      likes: post.likes || [], // safe, no populate
     }));
+
   } catch (error) {
     console.log("error when getting all posts", error);
+    return [];
   }
 };
+
 
 
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { MoreHorizontal, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { IPostDocument } from "@/mongodb/models/post";
 import PostOptions from "./PostOptions";
@@ -9,11 +9,54 @@ import deletePostAction from "@/app/actions/deletePostAction";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "./ui/button";
 import ReactTimeago from "react-timeago";
-import { Badge } from "./ui/badge";
-import { toast } from "sonner";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
 function Post({ post }: { post: IPostDocument }) {
   const { user } = useUser();
+ const [following, setFollowing] = useState<string[]>([]); // store following IDs
+
+          // 🔹 Load following list when component mounts
+    useEffect(() => {
+      const fetchFollowing = async () => {
+        try {
+          const res = await fetch(`/api/followers?userId=${user?.id}`);
+          const data = await res.json();
+          // assume API returns an array of following userIds
+          setFollowing(data.following || []);
+        } catch (err) {
+          console.error("Error fetching following list", err);
+        }
+      };
+  
+      if (user?.id) fetchFollowing();
+    }, [user?.id]);
+  
+      const handleFollow = async (targetUserId: string) => {
+        try {
+          if (following.includes(targetUserId)) {
+            // unfollow
+            await fetch("/api/followers", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ followerUserId: user?.id, followingUserId: targetUserId }),
+            });
+            setFollowing(following.filter((id) => id !== targetUserId));
+          } else {
+            // follow
+            await fetch("/api/followers", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ followerUserId: user?.id, followingUserId: targetUserId }),
+            });
+            setFollowing([...following, targetUserId]);
+          }
+        } catch (err) {
+          console.error("Follow/unfollow error", err);
+        }
+      };
+
 
   const isAuthor = user?.id === post.user.userId;
   return (
@@ -39,26 +82,34 @@ function Post({ post }: { post: IPostDocument }) {
               @{post.user.nickName}
             </p>
 
+          </div>
+
             <p className="text-xs text-gray-400">
               <ReactTimeago date={new Date(post.createdAt)} />
             </p>
-          </div>
 
-          {isAuthor && (
-            <Button
-              variant="outline"
-              onClick={() => {
-                const promise = deletePostAction(post._id);
-                toast.promise(promise, {
-                  loading: "Deleting post...",
-                  success: "Post deleted!",
-                  error: "Error deleting post",
-                });
-              }}
-            >
-              <Trash2 size={16}/>
-            </Button>
-          )}
+            <div>
+              <Popover>
+                <PopoverTrigger>
+                  <MoreHorizontal />
+                </PopoverTrigger>
+                <PopoverContent className="dark:bg-gray-800">
+                  {isAuthor ? (
+                              <div
+                                onClick={() => { deletePostAction(String(post._id))}}
+                               
+                              >
+                                <p className="text-red-600 cursor-pointer">Delete</p>
+                              </div>
+                            ) : (
+                             <p onClick={() => handleFollow(String(post.user.userId))} className="cursor-pointer">{following.includes(String(post.user.userId)) ? "Unfollow" : "Follow"}{`${post.user.firstName} @${post.user.nickName}`}</p> 
+                            )}          
+                </PopoverContent>
+                
+              </Popover>
+              
+            </div>
+          
         </div>
       </div>
 
@@ -66,6 +117,7 @@ function Post({ post }: { post: IPostDocument }) {
         <p className="px-4 pb-2 mt-2">{post.cast}</p>
 
         {/* If image uploaded put it here... */}
+        <Link href="/fullMedia">
         {post.imageUrl && (
           <Image
             src={post.imageUrl}
@@ -75,9 +127,10 @@ function Post({ post }: { post: IPostDocument }) {
             className="w-full mx-auto"
           />
         )}
+        </Link>
       </div>
-
-      <PostOptions postId={post._id} post={post} />
+          
+      <PostOptions postId={String(post._id)} post={post} />
     </div>
   );
 }

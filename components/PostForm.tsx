@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ImageIcon, PlusIcon, SmilePlus } from "lucide-react";
+import { ImageIcon, Plus, PlusIcon, SmilePlus } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -20,6 +20,8 @@ import { toast } from "sonner";
 import { IProfileBase } from "./../mongodb/models/profile";
 import { submitCastAction } from "@/app/actions/submitCastAction";
 import EmojiPicker from "emoji-picker-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import Link from "next/link";
 
 
 
@@ -58,6 +60,34 @@ function PostForm() {
 
     fetchProfile();
   }, []);
+
+useEffect(() => {
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch("/api/posts");
+      if (!res.ok) throw new Error("Failed to fetch status");
+
+      const data = await res.json();
+
+      // 1. Filter by scope = "status"
+      const filtered = data.filter((post: any) => post.scope === "status");
+
+      // 2. Keep only the first status per userId
+      const uniqueByUser = filtered.filter(
+        (post: any, index: number, self: any[]) =>
+          index === self.findIndex((p) => p.userId === post.userId)
+      );
+
+      setStatus(uniqueByUser);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchProfile();
+}, []);
+
+
 
   // Handle cast image
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,7 +180,114 @@ const handleSubmit = async (
 
   return (
     <div className="">
-      <h2 className="border-[1px] p-2 rounded-b-md">{scope || "Home"}</h2>
+      <div className="flex items-center space-x-2 border-[1px] p-2 rounded-b-md">        
+ <Dialog>
+  <DialogTrigger asChild>
+    <button className="border-[1px] w-fit rounded-full p-2">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Plus size={24} />
+          </TooltipTrigger>
+          <TooltipContent className="dark:bg-gray-900">
+            <p>Add status</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </button>
+  </DialogTrigger>
+
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Add Status</DialogTitle>
+    </DialogHeader>
+
+    {/* Status Input */}
+    <textarea
+      value={statusText}
+      onChange={(e) => setStatusText(e.target.value)}
+      placeholder="Add status..."
+      className="w-full border rounded-md p-2 bg-transparent"
+    />
+
+    {/* Status Image Preview */}
+    {statusPreview && (
+      <img
+        src={statusPreview}
+        alt="status preview"
+        className="h-24 w-24 rounded-md mt-2"
+      />
+    )}
+
+    <DialogFooter>
+      {/* Action buttons */}
+      <div className="flex items-center space-x-3">
+        {/* Upload image */}
+        <ImageIcon size={20} onClick={() => fileStatusInputRef.current?.click()} />
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileStatusInputRef}
+          hidden
+          onChange={handleStatusImageChange}
+        />
+
+        {/* Emoji picker */}
+        <button type="button" onClick={() => setShowPicker(!showPicker)}>
+          <SmilePlus size={20} />
+        </button>
+        <div className="relative">
+          {showPicker && (
+            <div className="absolute z-50">
+              <EmojiPicker
+                onEmojiClick={(emojiData) =>
+                  setStatusText((prev) => prev + emojiData.emoji)
+                }
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <DialogClose asChild>
+        <Button variant="outline">Cancel</Button>
+      </DialogClose>
+      <DialogClose asChild>
+        <Button
+          disabled={loadingStatus}
+          onClick={() => handleSubmit(submitCastAction, true, "status")}
+        >
+          {loadingStatus ? "Sending..." : "Send"}
+        </Button>
+      </DialogClose>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
+<div className="flex space-x-2 max-w-full overflow-x-auto scrollbar-hide">
+  {status.map((s, idx) => (
+    <Link
+    href={`status`}
+      key={idx}
+      className="flex items-center justify-center rounded-full p-1 border-2 w-12 h-12 shrink-0 cursor-pointer"
+    >
+      {s.imageUrl ? (
+        <Image
+          src={s.imageUrl || "/logo/broadcast.jpg"}
+          width={48}
+          height={48}
+          alt="status-image"
+          className="rounded-full object-cover w-10 h-10"
+        />
+      ) : (
+        <p className="text-[10px] text-center">{s.cast}</p>
+      )}
+    </Link>
+  ))}
+</div>
+
+
+      </div>
 
       {/* Cast Form */}
       <div className="border-[1px] p-2 rounded-md">

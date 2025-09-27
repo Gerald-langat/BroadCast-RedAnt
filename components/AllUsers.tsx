@@ -1,34 +1,13 @@
 "use client"
+import { IProfile } from '@/mongodb/models/profile'
+import { useUser } from '@clerk/nextjs';
+import Image from 'next/image'
+import Link from 'next/link'
+import React, { useEffect, useState } from 'react'
 
-import { IProfile } from "@/mongodb/models/profile";
-import { useUser } from "@clerk/nextjs";
-import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-
-function Members() {
+function AllUsers({ users }: { users: IProfile[] }) {
     const {user} = useUser();
-      const [users, setUsers] = useState<IProfile[]>([]);
     const [following, setFollowing] = useState<string[]>([]); // store following IDs
-    
-    
-      useEffect(() => {
-        const fetchUserScope = async () => {
-          try {
-            const res = await fetch("/api/users");
-            if (!res.ok) throw new Error("Failed to fetch user scope");
-    
-            const data = await res.json();
-            setUsers(data);
-          } catch (err) {
-            console.error("Error fetching user scope:", err);
-            setUsers([]);
-          }
-        };
-    
-        fetchUserScope();
-      }, []);
-
         // 🔹 Load following list when component mounts
   useEffect(() => {
     const fetchFollowing = async () => {
@@ -71,26 +50,22 @@ function Members() {
 
     const author = user?.id;
 
-  return (  
-      <div className='flex flex-col space-y-1  mr-6 rounded-lg border p-4 mt-1'>
-        <div className="flex justify-between items-center">
-           <p>members{users.length}</p>
-            <Link href="/members" className="text-xs cursor-pointer text-blue-500">View all members</Link> 
-        </div>   
-      {users.map(user => (
-        <div className="flex justify-between items-center gap-2 " key={user._id}>
+  return (
+    <div className='max-w-2xl mx-auto my-4'>
+         {users.map(user => (
+        <div className="flex justify-between items-center gap-2 space-y-1" key={user._id}>
           <Link href={`/profile/${user?.userId}`} className="flex items-center gap-2" >
             <Image src={user.userImg || "/logo/broadcast.jpg"} 
               width={200}
               height={200}
               alt="user-image"
-              className="w-8 h-8 rounded-full"
+              className="w-8 h-8 rounded-md"
               /> 
               <p className="text-sm min-w-13 max-w-13 truncate">{user.firstName}</p>
               <p className="text-sm min-w-13 max-w-13 truncate">{user.nickName}</p>
           </Link>
           {author === user.userId ? (
-             <p>You</p>
+            <p>You</p>
           ): (
             <button
               onClick={() => handleFollow(user.userId)}
@@ -106,4 +81,4 @@ function Members() {
   )
 }
 
-export default Members
+export default AllUsers

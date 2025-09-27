@@ -13,7 +13,7 @@ import { useScope } from "@/app/context/ScopeContext";
       {posts
         .filter((p) => p.scope === scope)
         .map((post) => (
-          <Post key={post._id} post={post} />
+          <Post key={String(post._id)} post={post} />
         ))}
 
     </div>

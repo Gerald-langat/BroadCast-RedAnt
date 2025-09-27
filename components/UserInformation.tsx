@@ -46,13 +46,6 @@ async function UserInformation({ posts }: { posts: IPostDocument[] }) {
           </p>
         </div>
       <hr className="w-full  my-5" />
-         
-      {/* <SignedIn>
-             <Button asChild className="bg-[#0B63C4] text-white">
-            <SignInButton>Sign out</SignInButton>
-          </Button>
-      </SignedIn> */}
-
 
       <div className="flex justify-between w-full px-4 text-sm">
         <p className="font-semibold text-gray-400">Posts</p>
@@ -75,10 +68,6 @@ async function UserInformation({ posts }: { posts: IPostDocument[] }) {
         MarketPlace</Link>
         <Link href="/dashboard" className='flex gap-2 items-center'><MessageSquareMoreIcon size={18} />
         Messages</Link>
-        {/* <Link href='/profile' className='flex gap-2 items-center'>
-        <User2Icon size={18} />
-        Profile
-        </Link> */}
       </div>      
         <div className=''>
           <Members />
