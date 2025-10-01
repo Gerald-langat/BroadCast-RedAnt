@@ -106,6 +106,16 @@
     }
   }
 
+  @keyframes fill {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+.animate-fill {
+  animation: fill 5s linear forwards;
+}
+
+
   @layer base {
     * {
       @apply border-border;

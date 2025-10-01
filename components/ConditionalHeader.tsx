@@ -7,7 +7,7 @@ export default function ConditionalHeader() {
   const pathname = usePathname();
 
   // List of folders or routes where Header should NOT appear
-  const excludedPaths = ["/auth", "/profile", "/settings", "/dashboard", "/members"];
+  const excludedPaths = ["/auth", "/profile", "/settings", "/dashboard", "/members", "/status"];
 
   // Check if pathname starts with any excluded prefix
   const hideHeader = excludedPaths.some((path) =>

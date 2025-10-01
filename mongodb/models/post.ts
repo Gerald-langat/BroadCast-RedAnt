@@ -7,10 +7,11 @@ export interface IPostBase {
   user: IProfileBase;
   cast: string;
   scope: string,
-  imageUrl?: string;
+  imageUrls: string[] | [];
   comments?: IComment[];
   likes?: string[];
   recastedBy: string[];  // 👈 new
+  videoUrl: string | null;
 }
 
 export interface IPost extends IPostBase, Document {
@@ -47,7 +48,10 @@ const PostSchema = new Schema<IPostDocument>(
     },
     cast: { type: String, required: true },
     scope: { type: String, default: "Home" },
-    imageUrl: { type: String },
+
+      imageUrls: { type: [String], default: [] },
+    videoUrl: { type: String, default: null },  
+
     comments: { type: [Schema.Types.ObjectId], ref: "Comment", default: [] },
     likes: { type: [String] },
     recastedBy: {

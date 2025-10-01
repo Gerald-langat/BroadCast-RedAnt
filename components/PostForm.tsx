@@ -109,9 +109,13 @@ useEffect(() => {
 
 
   // Generic submit function
-// PostForm.tsx (inside handleSubmit)
 const handleSubmit = async (
-  submitAction: (cast: string, imageUrl?: string, scope?: string) => Promise<any>,
+  submitAction: (
+    cast: string,
+    imageUrls?: string[],
+    videoUrl?: string,
+    scope?: string
+  ) => Promise<any>,
   isStatus = false,
   selectedScope?: string,
   onSuccess?: (newCast: any) => void
@@ -126,30 +130,47 @@ const handleSubmit = async (
       return;
     }
 
-    let imageUrl = "";
-    const uploadFile = isStatus ? sFile : file;
+    let imageUrls: string[] = [];
+    let videoUrl: string | undefined;
 
-    // Upload image if present
-    if (uploadFile) {
+    // Normalize file(s) into an array
+    let filesToUpload: File[] = [];
+
+    if (file instanceof File) {
+      filesToUpload = [file];
+    } else if (Array.isArray(file)) {
+      filesToUpload = file;
+    }
+
+    // Upload up to 4 images or 1 video
+    for (const f of filesToUpload.slice(0, 4)) {
       const formData = new FormData();
-      formData.append("file", uploadFile);
+      formData.append("file", f);
       formData.append("upload_preset", "broadcast");
 
+      const isVideo = f.type.startsWith("video/");
+      const uploadType = isVideo ? "video" : "image";
+
       const res = await fetch(
-        `https://api.cloudinary.com/v1_1/dmzw85kqr/image/upload`,
+        `https://api.cloudinary.com/v1_1/dmzw85kqr/${uploadType}/upload`,
         { method: "POST", body: formData }
       );
 
-      if (!res.ok) throw new Error("Image upload failed");
+      if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
-      imageUrl = data.secure_url;
+
+      if (isVideo) {
+        videoUrl = data.secure_url;
+      } else {
+        imageUrls.push(data.secure_url);
+      }
     }
 
-    // Use selectedScope if provided; fallback to current scope
+    // Scope fallback
     const castScope = selectedScope || scope;
 
     // Call the submit action
-    const newCast = await submitAction(castText, imageUrl, castScope);
+    const newCast = await submitAction(castText, imageUrls, videoUrl, castScope);
 
     if (onSuccess) onSuccess(newCast);
 
@@ -170,6 +191,8 @@ const handleSubmit = async (
     else setLoadingCast(false);
   }
 };
+
+
 
   if (loading)
     return (
@@ -226,7 +249,7 @@ const handleSubmit = async (
         <ImageIcon size={20} onClick={() => fileStatusInputRef.current?.click()} />
         <input
           type="file"
-          accept="image/*"
+          accept="image/*,video/*"
           ref={fileStatusInputRef}
           hidden
           onChange={handleStatusImageChange}
@@ -267,7 +290,7 @@ const handleSubmit = async (
 <div className="flex space-x-2 max-w-full overflow-x-auto scrollbar-hide">
   {status.map((s, idx) => (
     <Link
-    href={`status`}
+    href={`status/${s.user.userId}`}
       key={idx}
       className="flex items-center justify-center rounded-full p-1 border-2 w-12 h-12 shrink-0 cursor-pointer"
     >
@@ -285,8 +308,6 @@ const handleSubmit = async (
     </Link>
   ))}
 </div>
-
-
       </div>
 
       {/* Cast Form */}
@@ -309,7 +330,7 @@ const handleSubmit = async (
             />
             <input
               type="file"
-              accept="image/*"
+              accept="image/*,video/*"
               ref={fileInputRef}
               hidden
               onChange={handleImageChange}
@@ -317,12 +338,23 @@ const handleSubmit = async (
           </div>
 
           {preview && (
-            <img
-              src={preview}
-              alt="preview"
-              className="h-24 w-24 rounded-md mt-2"
-            />
+            file?.type?.startsWith("video/") ? (
+              <video
+                src={preview}
+                className="h-24 w-24 rounded-md mt-2 object-cover"
+                controls
+                autoPlay
+                muted
+              />
+            ) : (
+              <img
+                src={preview}
+                alt="preview"
+                className="h-24 w-24 rounded-md mt-2 object-cover"
+              />
+            )
           )}
+
 
           <div className="flex w-full justify-between">
             <div className="flex items-center space-x-3">

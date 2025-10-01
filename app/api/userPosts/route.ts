@@ -1,3 +1,4 @@
+// api/userPosts/route.ts
 import { NextResponse } from "next/server";
 import connectDB from "@/mongodb/db";
 import { Post, IPostBase } from "@/mongodb/models/post"; // ✅ import the Mongoose model
@@ -17,7 +18,7 @@ export async function GET(req: Request) {
       );
     }
 
-    const posts: IPostBase[] = await Post.find({ userId }).sort({ createdAt: -1 }).lean();
+    const posts: IPostBase[] = await Post.find({  "user.userId": userId }).sort({ createdAt: -1 }).lean();
 
     if (!posts || posts.length === 0) {
       return NextResponse.json([], { status: 200 });

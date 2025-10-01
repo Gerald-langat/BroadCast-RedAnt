@@ -7,7 +7,8 @@ import { currentUser } from "@clerk/nextjs/server";
 
 export const submitCastAction = async (
   cast: string,
-  imageUrl?: string,
+  imageUrls?: string[],
+  videoUrl?: string,
   scope?: string
 ) => {
   try {
@@ -35,14 +36,15 @@ export const submitCastAction = async (
     const postCreated = await Post.create({
       user: userForPost,
       cast,
-      imageUrl: imageUrl || null,
+      imageUrls: imageUrls && imageUrls.length > 0 ? imageUrls : [], // array
+      videoUrl: videoUrl || null,
       scope: scope || "Home",
     }); 
     // Revalidate home path
  revalidatePath("/");
+ console.log("Post created:", postCreated);
  
     const postPlain = postCreated.toObject({ getters: true, versionKey: false });
-    console.log("Plain post object:", postPlain);
 return postPlain;
    
    
