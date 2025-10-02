@@ -124,10 +124,11 @@ const toggleRecast = async () => {
           <div>
             <p className="text-xs text-gray-500">Recasted by:</p>
             <ul className="text-xs text-gray-600">
-              {recastedBy.map((uid) => (
-                <li key={uid}>{uid}</li> 
+              {[...new Set(recastedBy)].map((uid) => (
+                <li key={uid}>{uid}</li>
               ))}
             </ul>
+
           </div>
         )}
         <div>

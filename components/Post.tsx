@@ -10,12 +10,14 @@ import { useUser } from "@clerk/nextjs";
 import { Button } from "./ui/button";
 import ReactTimeago from "react-timeago";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 function Post({ post }: { post: IPostDocument }) {
   const { user } = useUser();
- const [following, setFollowing] = useState<string[]>([]); // store following IDs
+  const [following, setFollowing] = useState<string[]>([]); // store following IDs
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
 
           // 🔹 Load following list when component mounts
     useEffect(() => {
@@ -58,6 +60,34 @@ function Post({ post }: { post: IPostDocument }) {
       };
 
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (videoRef.current) {
+            if (entry.isIntersecting) {
+              videoRef.current.play();
+            } else {
+              videoRef.current.pause();
+            }
+          }
+        });
+      },
+      { threshold: 0.5 } // 50% of the video must be visible
+    );
+
+    if (videoRef.current) {
+      observer.observe(videoRef.current);
+    }
+
+    return () => {
+      if (videoRef.current) {
+        observer.unobserve(videoRef.current);
+      }
+    };
+  }, []);
+
+
   const isAuthor = user?.id === post.user.userId;
   return (
     <div className="rounded-md border">
@@ -97,7 +127,6 @@ function Post({ post }: { post: IPostDocument }) {
                   {isAuthor ? (
                               <div
                                 onClick={() => { deletePostAction(String(post._id))}}
-                               
                               >
                                 <p className="text-red-600 cursor-pointer">Delete</p>
                               </div>
@@ -113,21 +142,39 @@ function Post({ post }: { post: IPostDocument }) {
         </div>
       </div>
 
-      <div className="">
+      <div>
+        <Link href={`fullMedia/${String(post._id)}`}>
         <p className="px-4 pb-2 mt-2">{post.cast}</p>
-
-        {/* If image uploaded put it here... */}
-        <Link href="/fullMedia">
-        {post.imageUrl && (
-          <Image
-            src={post.imageUrl}
-            alt="Post Image"
-            width={500}
-            height={500}
-            className="w-full mx-auto"
-          />
-        )}
         </Link>
+            {post.imageUrls && post.imageUrls.length === 1 ? (
+              <Link href={`fullMedia/${String(post._id)}`}>
+                <img
+                  src={post.imageUrls[0]}
+                  alt="Post Image"
+                  className="w-full mx-auto"
+                />
+                </Link>
+            ) : post.imageUrls && post.imageUrls.length > 1 ? (
+              <Link href={`fullMedia/${String(post._id)}`} className="grid grid-cols-2  gap-1">
+                {post.imageUrls.map((url: string, idx: number) => (
+                  <img
+                    key={idx}
+                    src={url}
+                    alt={`Post Image ${idx + 1}`}
+                    className="w-full h-48 mx-auto object-cover"
+                  />
+                ))}
+              </Link>
+            ) : post.videoUrl ? (
+              <video
+                ref={videoRef}
+                src={post.videoUrl || ""}
+                controls
+                muted
+                playsInline
+                className="w-full h-60 mx-auto rounded-lg"
+              />
+            ) : null}
       </div>
           
       <PostOptions postId={String(post._id)} post={post} />

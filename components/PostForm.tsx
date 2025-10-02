@@ -27,8 +27,8 @@ import Link from "next/link";
 
 function PostForm() {
   const router = useRouter();
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [preview, setPreview] = useState<string[]>([]);
   const [statusPreview, setStatusPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState(false);
@@ -88,15 +88,16 @@ useEffect(() => {
 }, []);
 
 
-
-  // Handle cast image
+  // handle multiple files
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setPreview(URL.createObjectURL(selectedFile));
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files);
+      setFiles((prev) => [...prev, ...filesArray]); // keep files
+      const newPreviews = filesArray.map((file) => URL.createObjectURL(file));
+      setPreview((prev) => [...prev, ...newPreviews]); // preview
     }
   };
+
 
   // Handle status image
   const handleStatusImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,10 +137,10 @@ const handleSubmit = async (
     // Normalize file(s) into an array
     let filesToUpload: File[] = [];
 
-    if (file instanceof File) {
-      filesToUpload = [file];
-    } else if (Array.isArray(file)) {
-      filesToUpload = file;
+    if (files instanceof File) {
+      filesToUpload = [files];
+    } else if (Array.isArray(files)) {
+      filesToUpload = files;
     }
 
     // Upload up to 4 images or 1 video
@@ -178,8 +179,8 @@ const handleSubmit = async (
 
     // Reset form
     ref.current?.reset();
-    setPreview(null);
-    setFile(null);
+    setPreview([]);
+    setFiles([]);
     setStatusPreview(null);
     setStatusText("");
     setSFile(null);
@@ -227,6 +228,7 @@ const handleSubmit = async (
 
     {/* Status Input */}
     <textarea
+     onClick={() => setShowPicker(!showPicker)}
       value={statusText}
       onChange={(e) => setStatusText(e.target.value)}
       placeholder="Add status..."
@@ -323,6 +325,7 @@ const handleSubmit = async (
               priority
             />
             <textarea
+              onClick={() => setShowPicker(showPicker)}
               required
               name="cast"
               className="flex-grow h-12  bg-transparent "
@@ -337,23 +340,29 @@ const handleSubmit = async (
             />
           </div>
 
-          {preview && (
-            file?.type?.startsWith("video/") ? (
-              <video
-                src={preview}
-                className="h-24 w-24 rounded-md mt-2 object-cover"
-                controls
-                autoPlay
-                muted
-              />
-            ) : (
-              <img
-                src={preview}
-                alt="preview"
-                className="h-24 w-24 rounded-md mt-2 object-cover"
-              />
-            )
-          )}
+               {preview.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+            {files.map((f, idx) =>
+              f.type.startsWith("video/") ? (
+                <video
+                  key={idx}
+                  src={preview[idx]}
+                  className="h-24 w-24 rounded-md object-cover"
+                  controls
+                  autoPlay
+                  muted
+                />
+              ) : (
+                <img
+                  key={idx}
+                  src={preview[idx]}
+                  alt={`preview-${idx}`}
+                  className="h-24 w-24 rounded-md object-cover"
+                />
+              )
+            )}
+          </div>
+        )}
 
 
           <div className="flex w-full justify-between">
