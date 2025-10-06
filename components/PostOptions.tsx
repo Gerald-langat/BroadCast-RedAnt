@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 import { UnlikePostRequestBody } from "@/app/api/posts/[post_id]/unlike/route";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
-import Link from "next/link";
 
 function PostOptions({
   postId,
@@ -189,7 +188,7 @@ const toggleRecast = async () => {
       {isCommentsOpen && (
         <div className="p-4">
           {user?.id && <CommentForm postId={postId} />}
-          <CommentFeed post={post} />
+          <CommentFeed postId={postId} />
         </div>
       )}
     </div>

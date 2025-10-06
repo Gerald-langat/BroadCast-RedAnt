@@ -1,13 +1,11 @@
 "use client";
 
-import { MoreHorizontal, Trash2 } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { IPostDocument } from "@/mongodb/models/post";
 import PostOptions from "./PostOptions";
-import Image from "next/image";
 import deletePostAction from "@/app/actions/deletePostAction";
 import { useUser } from "@clerk/nextjs";
-import { Button } from "./ui/button";
 import ReactTimeago from "react-timeago";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { useEffect, useRef, useState } from "react";
@@ -17,7 +15,6 @@ function Post({ post }: { post: IPostDocument }) {
   const { user } = useUser();
   const [following, setFollowing] = useState<string[]>([]); // store following IDs
   const videoRef = useRef<HTMLVideoElement | null>(null);
-
 
           // 🔹 Load following list when component mounts
     useEffect(() => {

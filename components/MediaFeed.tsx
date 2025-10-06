@@ -1,34 +1,55 @@
 "use client";
 import { IPostDocument } from "@/mongodb/models/post";
 import { useScope } from "@/app/context/ScopeContext";
-import Image from "next/image";
 import Link from "next/link";
 
 function MediaFeed({ posts }: { posts: IPostDocument[] }) {
   const { scope } = useScope();
 
   return (
-    <div className="space-y-2 pb-20 max-w-4xl grid grid-cols-2 md:grid-cols-4 gap-4">
-      {posts
-        .filter((p) => p.scope === scope)
-        .filter((p) => p.imageUrl) // only posts with image
-        .map((post) => (
-          <Link href={`profile/${post.user.userId}`} key={String(post._id)} className="flex flex-col items-center">
-            <Image
-              src={post.imageUrl || "/logo/broadcast.jpg"}
-              width={200}
-              height={200}
-              alt="post image"
-              className="rounded-lg object-cover"
+    <div className="pb-20 max-w-4xl grid grid-cols-2 md:grid-cols-4 gap-4">
+  {posts
+    .filter((p) => p.scope === scope)
+    .filter((p) => (p.imageUrls && p.imageUrls.length > 0) || p.videoUrl)
+    .map((post) => (
+      <div key={String(post._id)} className="flex flex-col">
+        <Link href={`fullMedia/${String(post._id)}`} className="block">
+          {/* Single Image */}
+          {post.imageUrls && post.imageUrls.length === 1 ? (
+            <img
+              src={post.imageUrls[0]}
+              alt="Post Image"
+              className="w-full h-48 object-cover rounded-lg" // ✅ same height for all
             />
-            <div className="flex items-center gap-2">
-                <p className="font-semibold">{post.user?.firstName}</p>
-                <p className="text-gray-500">{post.user?.lastName}</p>
-                <p className="text-gray-500">@{post.user?.nickName}</p>  
+          ) : post.imageUrls && post.imageUrls.length > 1 ? (
+            <div className="grid grid-cols-2 gap-1 w-full h-48"> 
+              {post.imageUrls.slice(0, 4).map((url: string, idx: number) => (
+                <img
+                  key={idx}
+                  src={url}
+                  alt={`Post Image ${idx + 1}`}
+                  className="w-full h-24 object-cover rounded-lg"
+                />
+              ))}
             </div>
-          </Link>
-        ))}
-    </div>
+          ) : post.videoUrl ? (
+            <video
+              src={post.videoUrl}
+              muted
+              playsInline
+              className="w-full h-48 object-cover rounded-lg" // ✅ same height as images
+            />
+          ) : null}
+        </Link>
+
+        {/* User info */}
+        <p className="mt-1 text-sm font-medium">
+          {post.user.firstName} @{post.user.nickName}
+        </p>
+      </div>
+    ))}
+</div>
+
   );
 }
 

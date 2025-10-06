@@ -4,15 +4,27 @@ import { IPostDocument } from "@/mongodb/models/post";
 import { useUser } from "@clerk/nextjs";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import TimeAgo from "react-timeago";
+import { useEffect, useState } from "react";
+import { IComment } from "@/mongodb/models/comment";
 
-function CommentFeed({ post }: { post: IPostDocument }) {
+function CommentFeed({ postId }: { postId: string }) {
+   const [post, setPost] = useState<IComment[]>([]);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      const res = await fetch(`/api/posts/${postId}/comments`);
+      const data = await res.json();
+      setPost(data);
+    };
+    fetchComments();
+  }, [postId]);
+
   const { user } = useUser();
 
-  const isAuthor = user?.id === post.user.userId;
 
   return (
     <div className="mt-3 space-y-2">
-      {post?.comments?.map((comment) => (
+      {post?.map((comment) => (
         <div key={String(comment._id)} className="flex space-x-1">
           <Avatar>
             <AvatarImage src={comment?.user?.userImg} />
