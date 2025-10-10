@@ -52,7 +52,7 @@ const [query, setQuery] = useState("");
   }, [query]);
 
   return (
-    <div className="flex items-center p-2 max-w-6xl mx-auto">
+    <div className="flex items-center p-2 max-w-6xl mx-auto sticky top-0 z-50 bg-white dark:bg-gray-900 border-b">
       {/* Logo */}
       <Image
         className="rounded-lg"
