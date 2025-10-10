@@ -16,32 +16,18 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useProfile } from "./useProfile";
 
  function Header() {
 const [query, setQuery] = useState("");
   const [results, setResults] = useState<IProfile[]>([]);
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<IProfileBase | null>(null);
+    const { profile, loadingProfile, error } = useProfile();
 
   // 🔹 Use global scope from context
-  const { scope, scopeCode, setScopeCode, setScope } = useScope();
+  const { scope,  setScopeCode, setScope } = useScope();
 
-  useEffect(() => {
-    const fetchUserScope = async () => {
-      try {
-        const res = await fetch("/api/profile");
-        if (!res.ok) throw new Error("Failed to fetch user scope");
 
-        const data = await res.json();
-        setUser(data);
-      } catch (err) {
-        console.error("Error fetching user scope:", err);
-        setUser(null);
-      }
-    };
-
-    fetchUserScope();
-  }, []);
 
     useEffect(() => {
     if (!query) {
@@ -98,10 +84,10 @@ const [query, setQuery] = useState("");
   </form>
 
   {(loading || results.length > 0) && (
-    <div className="absolute left-2 right-2 mt-2 border rounded-md max-w-md shadow-lg max-h-60 overflow-y-auto z-50 bg-white  dark:bg-neutral-800">
+    <div className="absolute left-2 right-2 mt-2 border rounded-md max-w-md shadow-lg max-h-60 overflow-y-auto z-50 bg-white  dark:bg-gray-800">
       {loading && (
         <div className="flex items-center gap-2 p-2 text-sm text-gray-500">
-          <span>Searching...</span>
+          <span>Searching...<span className="loading loading-infinity loading-md"></span></span>
           <span className="loading loading-spinner loading-sm"></span>
         </div>
       )}
@@ -136,17 +122,17 @@ const [query, setQuery] = useState("");
           <p>Home</p>
         </div>
 
-        <div onClick={() => {setScope(user?.county ?? "Home"); setScopeCode(user?.countyCode ?? 0)}} className="icon hidden md:flex cursor-pointer">
+        <div onClick={() => {setScope(profile?.county ?? "Home"); setScopeCode(profile?.countyCode ?? 0)}} className="icon hidden md:flex cursor-pointer">
           <Map className="h-5" />
           <p>County</p>
         </div>
 
-        <div onClick={() =>{ setScope(user?.constituency ?? "Home"); setScopeCode(user?.constituencyCode ?? 0)}} className="icon hidden md:flex cursor-pointer">
+        <div onClick={() =>{ setScope(profile?.constituency ?? "Home"); setScopeCode(profile?.constituencyCode ?? 0)}} className="icon hidden md:flex cursor-pointer">
           <Flag className="h-5" />
           <p>Constituency</p>
         </div>
 
-        <div onClick={() => { setScope(user?.ward ?? "Home"); setScopeCode(user?.wardCode ?? 0)}} className="icon cursor-pointer">
+        <div onClick={() => { setScope(profile?.ward ?? "Home"); setScopeCode(profile?.wardCode ?? 0)}} className="icon cursor-pointer">
           <MapPin className="h-5" />
           <p>Ward</p>
         </div>        

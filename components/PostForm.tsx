@@ -22,11 +22,11 @@ import { submitCastAction } from "@/app/actions/submitCastAction";
 import EmojiPicker from "emoji-picker-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import Link from "next/link";
+import { useProfile } from "./useProfile";
 
 
 
 function PostForm() {
-  const router = useRouter();
   const [files, setFiles] = useState<File[]>([]);
   const [preview, setPreview] = useState<string[]>([]);
   const [statusPreview, setStatusPreview] = useState<string | null>(null);
@@ -37,29 +37,14 @@ function PostForm() {
   const fileStatusInputRef = useRef<HTMLInputElement>(null);
   const ref = useRef<HTMLFormElement>(null);
   const { scopeCode, scope } = useScope();
-  const { user } = useUser();
   const [sFile, setSFile] = useState<File | null>(null);
   const [statusText, setStatusText] = useState("");
   const [status, setStatus] = useState<any[]>([]);
-  const [profile, setProfile] = useState<IProfileBase | null>(null);
+    const { profile, loadingProfile, error } = useProfile();
   const [showPicker, setShowPicker] = useState(false);
+   const closeRef = useRef<HTMLButtonElement>(null);
 
 
-  // fetch profile
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch("/api/profile");
-        if (!res.ok) throw new Error("Failed to fetch profile");
-        const data = await res.json();
-        setProfile(data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchProfile();
-  }, []);
 
 useEffect(() => {
   const fetchProfile = async () => {
@@ -178,6 +163,7 @@ const handleSubmit = async (
     if (isStatus) setLoadingStatus(false);
     else setLoadingCast(false);
   }
+    closeRef.current?.click();
 };
 
 
@@ -216,11 +202,11 @@ const handleSubmit = async (
 
     {/* Status Input */}
     <textarea
-     onClick={() => setShowPicker(!showPicker)}
       value={statusText}
       onChange={(e) => setStatusText(e.target.value)}
       placeholder="Add status..."
       className="w-full border-b-[1px] rounded-md p-2 bg-transparent focus:ring-0 focus:outline-none"
+      onClick={() => setShowPicker(false)}
     />
 
     {/* Status Image Preview */}
@@ -313,11 +299,11 @@ const handleSubmit = async (
               priority
             />
             <textarea
-              onClick={() => setShowPicker(showPicker)}
               required
               name="cast"
               className="w-full border-b-[1px] rounded-md p-2 bg-transparent focus:ring-0 focus:outline-none"
               placeholder="type here..."
+              onClick={() => setShowPicker(false)}
             />
             <input
               type="file"
@@ -395,6 +381,9 @@ const handleSubmit = async (
                       <Button variant="outline">Cancel</Button>
                     </DialogClose>
                     <DialogClose asChild>
+            {/* Hidden close button used for programmatic close */}
+            <button ref={closeRef} className="hidden" />
+          </DialogClose>
                       <Button
                           disabled={loadingCast}
                           onClick={() =>
@@ -408,8 +397,6 @@ const handleSubmit = async (
                         >
                           {loadingCast ? "Sending..." : "Send"}
                         </Button>
-
-                    </DialogClose>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -427,6 +414,9 @@ const handleSubmit = async (
                       <Button variant="outline">Cancel</Button>
                     </DialogClose>
                     <DialogClose asChild>
+            {/* Hidden close button used for programmatic close */}
+            <button ref={closeRef} className="hidden" />
+          </DialogClose>
                      <Button
                       disabled={loadingCast}
                       onClick={() =>
@@ -440,8 +430,6 @@ const handleSubmit = async (
                     >
                       {loadingCast ? "Sending..." : "Send"}
                     </Button>
-
-                    </DialogClose>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -459,6 +447,9 @@ const handleSubmit = async (
                       <Button variant="outline">Cancel</Button>
                     </DialogClose>
                     <DialogClose asChild>
+            {/* Hidden close button used for programmatic close */}
+            <button ref={closeRef} className="hidden" />
+          </DialogClose>
                       <Button
                         disabled={loadingCast}
                         onClick={() =>
@@ -472,8 +463,6 @@ const handleSubmit = async (
                       >
                         {loadingCast ? "Sending..." : "Send"}
                       </Button>
-
-                    </DialogClose>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -490,6 +479,10 @@ const handleSubmit = async (
                     <DialogClose asChild>
                       <Button variant="outline">Cancel</Button>
                     </DialogClose>
+                    <DialogClose asChild>
+            {/* Hidden close button used for programmatic close */}
+            <button ref={closeRef} className="hidden" />
+          </DialogClose>
                       <Button
                           disabled={loadingCast}
                           onClick={() =>
@@ -503,7 +496,6 @@ const handleSubmit = async (
                         >
                           {loadingCast ? "Sending..." : "Send"}
                         </Button>
-
                   </DialogFooter>
                 </DialogContent>
               </Dialog>

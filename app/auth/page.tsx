@@ -42,7 +42,7 @@ function FormPage() {
   const [Constituency, setSelectedConstituency] = useState<string>("Select Constituency");
   const [Ward, setSelectedWard] = useState<string>("Select Ward");
   const [loading, setLoading] = useState(false);
-    
+  const [open, setOpen] = useState(false);
 
   // Data states
   const [counties, setCounties] = useState<County[]>([]);
@@ -243,7 +243,7 @@ const user = useUser();
         <div className="flex flex-col justify-self-start space-y-2">
                {/* Category Dropdown */}
             <Popover>
-              <PopoverTrigger className="border-[1px] p-2 rounded-lg flex justify-start">{Category}</PopoverTrigger>
+              <PopoverTrigger className="border-[1px] p-2 rounded-lg flex justify-start"  onClick={() => setOpen(!open)}>{Category}</PopoverTrigger>
               <PopoverContent className="flex flex-col space-y-1 bg-gray-100 dark:bg-gray-900 ">
                 {[
                   "Personal Account",
@@ -257,7 +257,7 @@ const user = useUser();
                 ].map((cat) => (
                   <div
                     key={cat}
-                    onClick={() => setSelectedCategory(cat)}
+                    onClick={() => {setSelectedCategory(cat); setOpen(false);}}
                     className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 px-2"
                   >
                     {cat}
@@ -268,7 +268,7 @@ const user = useUser();
 
             {/* County Dropdown */}
             <Popover>
-              <PopoverTrigger className="border-[1px] p-2 rounded-lg flex justify-start">{County}</PopoverTrigger>
+              <PopoverTrigger className="border-[1px] p-2 rounded-lg flex justify-start"  onClick={() => setOpen(!open)}>{County}</PopoverTrigger>
               <PopoverContent className="flex flex-col space-y-1  max-h-56 overflow-y-scroll bg-gray-100 dark:bg-gray-900 ">
                 {counties.map((county) => (
                   <div
@@ -279,6 +279,7 @@ const user = useUser();
                       setScopeCode(county.countyCode); // 👈 numeric code
                       setSelectedConstituency("Select Constituency");
                       setSelectedWard("Select Ward");
+                      setOpen(false);
                     }}
                     className="cursor-pointer px-2 hover:bg-gray-200 dark:hover:bg-gray-800"
                   >
@@ -290,7 +291,7 @@ const user = useUser();
 
             {/* Constituency Dropdown */}
             <Popover>
-              <PopoverTrigger className="border-[1px] p-2 rounded-lg flex justify-start">{Constituency}</PopoverTrigger>
+              <PopoverTrigger className="border-[1px] p-2 rounded-lg flex justify-start"  onClick={() => setOpen(!open)}>{Constituency}</PopoverTrigger>
               <PopoverContent className="flex flex-col space-y-1 bg-gray-100 dark:bg-gray-900 ">
                 {constituencies.map((c) => (
                   <div
@@ -300,6 +301,7 @@ const user = useUser();
                         setScope(c.name); // 👈 constituency name as scope
                         setScopeCode(c.code); // 👈 constituency numeric code
                         setSelectedWard("Select Ward");
+                        setOpen(false);
                       }}
 
                     className="cursor-pointer px-2 hover:bg-gray-200 dark:hover:bg-gray-800"
@@ -312,7 +314,7 @@ const user = useUser();
 
             {/* Ward Dropdown */}
             <Popover>
-              <PopoverTrigger className="border-[1px] p-2 rounded-lg flex justify-start">{Ward}</PopoverTrigger>
+              <PopoverTrigger className="border-[1px] p-2 rounded-lg flex justify-start"  onClick={() => setOpen(!open)}>{Ward}</PopoverTrigger>
               <PopoverContent className="flex flex-col space-y-1 bg-gray-100 dark:bg-gray-900 ">
                 {wards.map((w) => (
                   <div
@@ -321,6 +323,7 @@ const user = useUser();
                         setSelectedWard(w.name);
                         setScope(w.name); // 👈 ward name as scope
                         setScopeCode(w.code); // 👈 ward numeric code
+                        setOpen(false);
                       }}
 
                     className="cursor-pointer px-2 hover:bg-gray-200 dark:hover:bg-gray-800"

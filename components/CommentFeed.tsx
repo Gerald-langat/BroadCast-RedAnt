@@ -1,6 +1,5 @@
 "use client";
 
-import { IPostDocument } from "@/mongodb/models/post";
 import { useUser } from "@clerk/nextjs";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import TimeAgo from "react-timeago";

@@ -6,27 +6,13 @@ import { useEffect, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { toast } from "sonner";
 import { IProfileBase } from "@/mongodb/models/profile";
+import { useProfile } from "./useProfile";
 
 function CommentForm({ postId }: { postId: string }) {
   const { user } = useUser();
   const ref = useRef<HTMLFormElement>(null);
-  const [profile, setProfile] = useState<IProfileBase | null>(null);
+    const { profile, loadingProfile, error } = useProfile();
 
-  // fetch profile
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch("/api/profile");
-        if (!res.ok) throw new Error("Failed to fetch profile");
-        const data = await res.json();
-        setProfile(data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchProfile();
-  }, []);
 
   const createCommentActionWithPostId = createCommentAction.bind(null, postId);
 
@@ -48,6 +34,10 @@ function CommentForm({ postId }: { postId: string }) {
   };
 
   return (
+    <>
+    {loadingProfile ? (
+      <div>Loading...<span className="loading loading-infinity loading-md"></span></div>
+    ) : ( 
     <form
       ref={ref}
       action={(formData) => {
@@ -80,6 +70,8 @@ function CommentForm({ postId }: { postId: string }) {
         </button>
       </div>
     </form>
+)}
+</>
   );
 }
 
