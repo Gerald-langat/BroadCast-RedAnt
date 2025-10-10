@@ -24,7 +24,7 @@ const [query, setQuery] = useState("");
   const [user, setUser] = useState<IProfileBase | null>(null);
 
   // 🔹 Use global scope from context
-  const { scope, setScope } = useScope();
+  const { scope, scopeCode, setScopeCode, setScope } = useScope();
 
   useEffect(() => {
     const fetchUserScope = async () => {
@@ -131,22 +131,22 @@ const [query, setQuery] = useState("");
     <h2 className="md:mr-10">{scope}</h2>
 
       <div className="hidden md:flex items-center space-x-4 px-6">
-        <div onClick={() => setScope("Home")} className="icon cursor-pointer">
+        <div onClick={() => {setScope("Home"); setScopeCode(0)}} className="icon cursor-pointer">
           <HomeIcon className="h-5 " />
           <p>Home</p>
         </div>
 
-        <div onClick={() => user?.county && setScope(user?.county)} className="icon hidden md:flex cursor-pointer">
+        <div onClick={() => {setScope(user?.county ?? "Home"); setScopeCode(user?.countyCode ?? 0)}} className="icon hidden md:flex cursor-pointer">
           <Map className="h-5" />
           <p>County</p>
         </div>
 
-        <div onClick={() => user?.constituency && setScope(user?.constituency)} className="icon hidden md:flex cursor-pointer">
+        <div onClick={() =>{ setScope(user?.constituency ?? "Home"); setScopeCode(user?.constituencyCode ?? 0)}} className="icon hidden md:flex cursor-pointer">
           <Flag className="h-5" />
           <p>Constituency</p>
         </div>
 
-        <div onClick={() => user?.ward && setScope(user?.ward)} className="icon cursor-pointer">
+        <div onClick={() => { setScope(user?.ward ?? "Home"); setScopeCode(user?.wardCode ?? 0)}} className="icon cursor-pointer">
           <MapPin className="h-5" />
           <p>Ward</p>
         </div>        

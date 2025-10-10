@@ -6,12 +6,15 @@ import { IProfileBase } from "./profile";
 export interface IPostBase {
   user: IProfileBase;
   cast: string;
-  scope: string,
+  scope: string;
+  scopeCode: number;
   imageUrls: string[] | [];
   comments?: IComment[];
   likes?: string[];
   recastedBy: string[];  // 👈 new
   videoUrl: string | null;
+  isDeleted: boolean;   // ✅ added
+  deletedAt: Date | null;  // ✅ added
 }
 
 export interface IPost extends IPostBase, Document {
@@ -47,7 +50,8 @@ const PostSchema = new Schema<IPostDocument>(
       userImg: { type: String }
     },
     cast: { type: String, required: true },
-    scope: { type: String, default: "Home" },
+    scope: { type: String, required: true },
+    scopeCode: { type: Number, required: true, default: 0 }, // 1-Public, 2-Connections, 3-Only Me
 
       imageUrls: { type: [String], default: [] },
     videoUrl: { type: String, default: null },  
@@ -58,6 +62,10 @@ const PostSchema = new Schema<IPostDocument>(
     type: [String], // store user IDs as plain strings
     default: [],
   },
+
+   isDeleted: { type: Boolean, default: false },   // ✅ added
+    deletedAt: { type: Date, default: null },
+
   },
   {
     timestamps: true,
@@ -99,11 +107,15 @@ PostSchema.methods.unRePost = async function (userId: string) {
 
 PostSchema.methods.removePost = async function () {
   try {
-    await this.model("Post").deleteOne({ _id: this._id });
+    console.log("Soft deleting post:", this._id);
+    await this.updateOne({
+      $set: { isDeleted: true, deletedAt: new Date() },
+    });
   } catch (error) {
-    console.log("error when removing post", error);
+    console.error("Error when soft deleting post:", error);
   }
 };
+
 
 PostSchema.methods.commentOnPost = async function (commentToAdd: ICommentBase) {
   try {
@@ -117,7 +129,7 @@ PostSchema.methods.commentOnPost = async function (commentToAdd: ICommentBase) {
 
 PostSchema.statics.getAllPosts = async function () {
   try {
-    const posts = await this.find()
+    const posts = await this.find({ isDeleted: { $ne: true } })
       .sort({ createdAt: -1 })
       .populate({
         path: "comments",
@@ -140,9 +152,6 @@ PostSchema.statics.getAllPosts = async function () {
     return [];
   }
 };
-
-
-
 
 
 PostSchema.methods.getAllComments = async function () {

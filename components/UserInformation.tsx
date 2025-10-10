@@ -5,6 +5,7 @@ import { IProfileBase, Profile } from "@/mongodb/models/profile";
 import Link from "next/link";
 import { Building2Icon, HomeIcon, MessageSquareMoreIcon, NewspaperIcon, PauseCircleIcon, User2Icon } from "lucide-react";
 import Members from "./Members";
+import { formatNumber } from "@/lib/formatnumber";
 
 async function UserInformation({ posts }: { posts: IPostDocument[] }) {
   const user = await currentUser();
@@ -49,12 +50,12 @@ async function UserInformation({ posts }: { posts: IPostDocument[] }) {
 
       <div className="flex justify-between w-full px-4 text-sm">
         <p className="font-semibold text-gray-400">Posts</p>
-        <p className="text-blue-400">{userPosts?.length}</p>
+        <p className="text-blue-400">{formatNumber(userPosts?.length)}</p>
       </div>
 
       <div className="flex justify-between w-full px-4 text-sm">
         <p className="font-semibold text-gray-400">Comments</p>
-        <p className="text-blue-400">{userComments?.length}</p>
+        <p className="text-blue-400">{formatNumber(userComments?.length)}</p>
       </div>
     </div>
     <div className='flex flex-col space-y-1  mr-6 rounded-lg border p-4 mt-1'>

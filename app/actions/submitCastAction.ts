@@ -7,9 +7,10 @@ import { currentUser } from "@clerk/nextjs/server";
 
 export const submitCastAction = async (
   cast: string,
+  scope:  string,
+  scopeCode: number,
   imageUrls?: string[],
-  videoUrl?: string,
-  scope?: string
+  videoUrl?: string,  
 ) => {
   try {
     // Get authenticated user
@@ -38,14 +39,15 @@ export const submitCastAction = async (
       cast,
       imageUrls: imageUrls && imageUrls.length > 0 ? imageUrls : [], // array
       videoUrl: videoUrl || null,
-      scope: scope || "Home",
+      scope: scope,
+      scopeCode: scopeCode || 0, // default to 0 if not provided
     }); 
     // Revalidate home path
  revalidatePath("/");
- console.log("Post created:", postCreated);
  
-    const postPlain = postCreated.toObject({ getters: true, versionKey: false });
-return postPlain;
+   const plainPost = JSON.parse(JSON.stringify(postCreated));
+
+return plainPost; 
    
    
 

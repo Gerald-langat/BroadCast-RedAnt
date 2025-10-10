@@ -2,8 +2,8 @@
 
 import { currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { DeletePostRequestBody } from "@/app/api/posts/[post_id]/route";
-import { Post } from "@/mongodb/models/post";
+import { Market } from "@/mongodb/models/marketpost";
+import { DeletePostRequestBody } from "../api/marketPosts/[post_id]/route";
 
 export default async function deletePostAction(postId: string) {
   const user = await currentUser();
@@ -16,7 +16,7 @@ export default async function deletePostAction(postId: string) {
     userId: user.id,
   };
 
-  const post = await Post.findById(postId);
+  const post = await Market.findById(postId);
 
   if (!post) {
     throw new Error("Post not found");
@@ -27,8 +27,8 @@ export default async function deletePostAction(postId: string) {
   }
 
   try {
-    await post?.removePost();
-    revalidatePath("/");
+    await post.removeProduct();
+    revalidatePath("market");
   } catch (error) {
     throw new Error("An error occurred while deleting the post");
   }

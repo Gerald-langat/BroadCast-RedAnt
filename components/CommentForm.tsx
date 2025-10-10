@@ -68,7 +68,7 @@ function CommentForm({ postId }: { postId: string }) {
         </AvatarFallback>
       </Avatar>
 
-      <div className="flex flex-1 bg-white border rounded-full px-3 py-2">
+      <div className="flex flex-1 border rounded-full px-3 py-2">
         <input
           type="text"
           name="commentInput"

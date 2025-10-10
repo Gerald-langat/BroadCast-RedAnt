@@ -2,7 +2,7 @@
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { ImageIcon, Router } from "lucide-react";
+import { ImageIcon } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import z from "zod";
 import countyData from "../../counties.json";
@@ -10,6 +10,7 @@ import { redirect, useRouter } from "next/navigation";
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
 import createProfileAction from "../actions/profile";
 import { Toaster } from "sonner";
+import { useScope } from "../context/ScopeContext";
 
 const inputSchema = z.object({
   firstName: z.string().nonempty("First name is required"),
@@ -35,11 +36,12 @@ type County = { name: string; countyCode: number; constituencies: Constituency[]
 
 function FormPage() {
   // Dropdown states
+  const { setScope, setScopeCode } = useScope();
   const [Category, setSelectedCategory] = useState<string>("Select Category");
   const [County, setSelectedCounty] = useState<string>("Select County");
   const [Constituency, setSelectedConstituency] = useState<string>("Select Constituency");
   const [Ward, setSelectedWard] = useState<string>("Select Ward");
-      const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
     
 
   // Data states
@@ -104,52 +106,64 @@ const user = useUser();
   // Handle submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    let imageUrl = "";
-if (file) {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", "broadcast");
+    setLoading(true); // ✅ Start loading
 
-  const res = await fetch(
-    `https://api.cloudinary.com/v1_1/dmzw85kqr/image/upload`,
-    {
-      method: "POST",
-      body: formData,
+    try {
+      let imageUrl = user?.user?.imageUrl ?? "";
+
+      // 🖼️ Upload image if present
+      if (file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "broadcast");
+
+        const res = await fetch(
+          "https://api.cloudinary.com/v1_1/dmzw85kqr/image/upload",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        const data = await res.json();
+        imageUrl = data.secure_url;
+      }
+
+      // 🧾 Collect form data
+      const form = e.target as HTMLFormElement;
+      const formData = {
+        firstName: form.firstName.value,
+        lastName: form.lastName.value,
+        nickName: form.nickName.value,
+        Category,
+        County,
+        countyCode:
+          counties.find((c) => c.name === County)?.countyCode || null,
+        Constituency,
+        constituencyCode:
+          constituencies.find((c) => c.name === Constituency)?.code || null,
+        Ward,
+        wardCode: wards.find((w) => w.name === Ward)?.code || null,
+        acceptedTerms,
+        imageUrl,
+      };
+
+      const result = inputSchema.safeParse(formData);
+      if (!result.success) {
+        alert("Please fill all fields correctly");
+        return;
+      }
+
+      // 🚀 Send to backend
+      await createProfileAction(formData);
+      router.replace("/");
+    } catch (err) {
+      console.error("Profile creation failed:", err);
+      alert("Something went wrong, please try again.");
+    } finally {
+      setLoading(false); // ✅ End loading
     }
-  );
-
-  const data = await res.json();
-  imageUrl = data.secure_url; // ✅ actual Cloudinary URL
-}
-
-
-    const formData = {
-      firstName: (e.target as HTMLFormElement).firstName.value,
-      lastName: (e.target as HTMLFormElement).lastName.value,
-      nickName: (e.target as HTMLFormElement).nickName.value,
-      Category,
-      County,
-      Constituency,
-      Ward,
-      acceptedTerms,
-      imageUrl
-    };
-
-    const result = inputSchema.safeParse(formData);
-
-    if (!result.success) {
-      alert("Please fill all fields correctly");
-      return;
-    }
-
-    // 👉 Instead of prisma here, call API route
-    await createProfileAction(formData)
-    router.replace('/')
-
   };
-
-
 
     useEffect(() => {
     if (!user) {
@@ -212,9 +226,11 @@ if (file) {
 
             {/* Profile Image */}
             <div>
-              <Button type="button" onClick={() => fileInputRef.current?.click()}>
-                <ImageIcon className="mr-2" /> Upload Profile
+                <Button type="button" onClick={() => fileInputRef.current?.click()}>
+                <ImageIcon className="mr-2" /> Upload Profile<span>/optional</span>
               </Button>
+              
+              
               <input
                 type="file"
                 accept="image/*"
@@ -224,11 +240,11 @@ if (file) {
               />
               {preview && <img src={preview} alt="preview" className="h-16 w-16 rounded-md mt-2" />}
             </div>
-<div className="flex flex-col justify-self-start space-y-2">
+        <div className="flex flex-col justify-self-start space-y-2">
                {/* Category Dropdown */}
             <Popover>
               <PopoverTrigger className="border-[1px] p-2 rounded-lg flex justify-start">{Category}</PopoverTrigger>
-              <PopoverContent className="flex flex-col space-y-1 bg-gray-100 ">
+              <PopoverContent className="flex flex-col space-y-1 bg-gray-100 dark:bg-gray-900 ">
                 {[
                   "Personal Account",
                   "Business Account",
@@ -253,12 +269,18 @@ if (file) {
             {/* County Dropdown */}
             <Popover>
               <PopoverTrigger className="border-[1px] p-2 rounded-lg flex justify-start">{County}</PopoverTrigger>
-              <PopoverContent className="flex flex-col space-y-1  max-h-56 overflow-y-scroll bg-gray-100">
+              <PopoverContent className="flex flex-col space-y-1  max-h-56 overflow-y-scroll bg-gray-100 dark:bg-gray-900 ">
                 {counties.map((county) => (
                   <div
                     key={`{county.countyCode}-${county.name}`}
-                    onClick={() => setSelectedCounty(county.name)}
-                    className="cursor-pointer px-2 hover:bg-gray-200"
+                    onClick={() => {
+                      setSelectedCounty(county.name);
+                      setScope(county.name); // 👈 set scope level = County
+                      setScopeCode(county.countyCode); // 👈 numeric code
+                      setSelectedConstituency("Select Constituency");
+                      setSelectedWard("Select Ward");
+                    }}
+                    className="cursor-pointer px-2 hover:bg-gray-200 dark:hover:bg-gray-800"
                   >
                     {county.name}
                   </div>
@@ -269,12 +291,18 @@ if (file) {
             {/* Constituency Dropdown */}
             <Popover>
               <PopoverTrigger className="border-[1px] p-2 rounded-lg flex justify-start">{Constituency}</PopoverTrigger>
-              <PopoverContent className="flex flex-col space-y-1 bg-gray-100">
+              <PopoverContent className="flex flex-col space-y-1 bg-gray-100 dark:bg-gray-900 ">
                 {constituencies.map((c) => (
                   <div
                     key={c.code}
-                    onClick={() => setSelectedConstituency(c.name)}
-                    className="cursor-pointer px-2 hover:bg-gray-200"
+                    onClick={() => {
+                        setSelectedConstituency(c.name);
+                        setScope(c.name); // 👈 constituency name as scope
+                        setScopeCode(c.code); // 👈 constituency numeric code
+                        setSelectedWard("Select Ward");
+                      }}
+
+                    className="cursor-pointer px-2 hover:bg-gray-200 dark:hover:bg-gray-800"
                   >
                     {c.name}
                   </div>
@@ -285,12 +313,17 @@ if (file) {
             {/* Ward Dropdown */}
             <Popover>
               <PopoverTrigger className="border-[1px] p-2 rounded-lg flex justify-start">{Ward}</PopoverTrigger>
-              <PopoverContent className="flex flex-col space-y-1 bg-gray-100">
+              <PopoverContent className="flex flex-col space-y-1 bg-gray-100 dark:bg-gray-900 ">
                 {wards.map((w) => (
                   <div
                     key={w.code}
-                    onClick={() => setSelectedWard(w.name)}
-                    className="cursor-pointer px-2 hover:bg-gray-200"
+                    onClick={() => {
+                        setSelectedWard(w.name);
+                        setScope(w.name); // 👈 ward name as scope
+                        setScopeCode(w.code); // 👈 ward numeric code
+                      }}
+
+                    className="cursor-pointer px-2 hover:bg-gray-200 dark:hover:bg-gray-800"
                   >
                     {w.name}
                   </div>
@@ -312,7 +345,7 @@ if (file) {
 </div>
 
             {/* Submit */}
-            <Button type="submit">Submit</Button>
+            <Button type="submit" variant="outline">{loading ? "loading..." :"Submit"}</Button>
           </form>
         </div>
       </div>

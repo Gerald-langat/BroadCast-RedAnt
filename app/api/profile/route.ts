@@ -17,8 +17,9 @@ export async function GET() {
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
-
+    console.log(profile);
     return NextResponse.json(profile, { status: 200 });
+    
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });

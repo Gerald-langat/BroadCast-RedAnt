@@ -36,7 +36,7 @@ function PostForm() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileStatusInputRef = useRef<HTMLInputElement>(null);
   const ref = useRef<HTMLFormElement>(null);
-  const { scope, setScope } = useScope();
+  const { scopeCode, scope } = useScope();
   const { user } = useUser();
   const [sFile, setSFile] = useState<File | null>(null);
   const [statusText, setStatusText] = useState("");
@@ -113,12 +113,14 @@ useEffect(() => {
 const handleSubmit = async (
   submitAction: (
     cast: string,
+    scope: string,
+    scopeCode: number,
     imageUrls?: string[],
-    videoUrl?: string,
-    scope?: string
+    videoUrl?: string
   ) => Promise<any>,
   isStatus = false,
   selectedScope?: string,
+  selectedScopeCode?: number,
   onSuccess?: (newCast: any) => void
 ) => {
   try {
@@ -134,50 +136,35 @@ const handleSubmit = async (
     let imageUrls: string[] = [];
     let videoUrl: string | undefined;
 
-    // Normalize file(s) into an array
-    let filesToUpload: File[] = [];
+    const filesToUpload = Array.isArray(files) ? files : [files].filter(Boolean);
 
-    if (files instanceof File) {
-      filesToUpload = [files];
-    } else if (Array.isArray(files)) {
-      filesToUpload = files;
-    }
-
-    // Upload up to 4 images or 1 video
     for (const f of filesToUpload.slice(0, 4)) {
       const formData = new FormData();
       formData.append("file", f);
       formData.append("upload_preset", "broadcast");
+      const uploadType = f.type.startsWith("video/") ? "video" : "image";
 
-      const isVideo = f.type.startsWith("video/");
-      const uploadType = isVideo ? "video" : "image";
+      const res = await fetch(`https://api.cloudinary.com/v1_1/dmzw85kqr/${uploadType}/upload`, {
+        method: "POST",
+        body: formData,
+      });
 
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/dmzw85kqr/${uploadType}/upload`,
-        { method: "POST", body: formData }
-      );
-
-      if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
-
-      if (isVideo) {
-        videoUrl = data.secure_url;
-      } else {
-        imageUrls.push(data.secure_url);
-      }
+      if (f.type.startsWith("video/")) videoUrl = data.secure_url;
+      else imageUrls.push(data.secure_url);
     }
 
-    // Scope fallback
-    const castScope = selectedScope || scope;
+    // Fallback to context values if none selected
+    const castScope = selectedScope ?? scope;
+    const castScopeCode = selectedScopeCode ?? scopeCode;
 
-    // Call the submit action
-    const newCast = await submitAction(castText, imageUrls, videoUrl, castScope);
+    const newCast = await submitAction(castText, castScope, castScopeCode, imageUrls, videoUrl);
 
-    if (onSuccess) onSuccess(newCast);
 
+    onSuccess?.(newCast);
     toast.success("Posted successfully");
 
-    // Reset form
+    // Reset
     ref.current?.reset();
     setPreview([]);
     setFiles([]);
@@ -192,6 +179,7 @@ const handleSubmit = async (
     else setLoadingCast(false);
   }
 };
+
 
 
 
@@ -232,7 +220,7 @@ const handleSubmit = async (
       value={statusText}
       onChange={(e) => setStatusText(e.target.value)}
       placeholder="Add status..."
-      className="w-full border rounded-md p-2 bg-transparent"
+      className="w-full border-b-[1px] rounded-md p-2 bg-transparent focus:ring-0 focus:outline-none"
     />
 
     {/* Status Image Preview */}
@@ -280,7 +268,7 @@ const handleSubmit = async (
       <DialogClose asChild>
         <Button
           disabled={loadingStatus}
-          onClick={() => handleSubmit(submitCastAction, true, "status")}
+          onClick={() => handleSubmit(submitCastAction, true, "status", 1)}
         >
           {loadingStatus ? "Sending..." : "Send"}
         </Button>
@@ -328,7 +316,7 @@ const handleSubmit = async (
               onClick={() => setShowPicker(showPicker)}
               required
               name="cast"
-              className="flex-grow h-12  bg-transparent "
+              className="w-full border-b-[1px] rounded-md p-2 bg-transparent focus:ring-0 focus:outline-none"
               placeholder="type here..."
             />
             <input
@@ -408,13 +396,19 @@ const handleSubmit = async (
                     </DialogClose>
                     <DialogClose asChild>
                       <Button
-                        disabled={loadingCast}
-                        onClick={() =>
-                          handleSubmit(submitCastAction, false, profile?.county)
-                        }
-                      >
-                        {loadingCast ? "Sending..." : "Send"}
-                      </Button>
+                          disabled={loadingCast}
+                          onClick={() =>
+                            handleSubmit(
+                              submitCastAction,
+                              false,
+                              profile?.county,
+                              profile?.countyCode
+                            )
+                          }
+                        >
+                          {loadingCast ? "Sending..." : "Send"}
+                        </Button>
+
                     </DialogClose>
                   </DialogFooter>
                 </DialogContent>
@@ -433,14 +427,20 @@ const handleSubmit = async (
                       <Button variant="outline">Cancel</Button>
                     </DialogClose>
                     <DialogClose asChild>
-                      <Button
-                        disabled={loadingCast}
-                        onClick={() =>
-                          handleSubmit(submitCastAction, false, profile?.constituency)
-                        }
-                      >
-                        {loadingCast ? "Sending..." : "Send"}
-                      </Button>
+                     <Button
+                      disabled={loadingCast}
+                      onClick={() =>
+                        handleSubmit(
+                          submitCastAction,
+                          false,
+                          profile?.constituency,
+                          profile?.constituencyCode
+                        )
+                      }
+                    >
+                      {loadingCast ? "Sending..." : "Send"}
+                    </Button>
+
                     </DialogClose>
                   </DialogFooter>
                 </DialogContent>
@@ -462,11 +462,17 @@ const handleSubmit = async (
                       <Button
                         disabled={loadingCast}
                         onClick={() =>
-                          handleSubmit(submitCastAction, false, profile?.ward)
+                          handleSubmit(
+                            submitCastAction,
+                            false,
+                            profile?.ward,
+                            profile?.wardCode
+                          )
                         }
                       >
                         {loadingCast ? "Sending..." : "Send"}
                       </Button>
+
                     </DialogClose>
                   </DialogFooter>
                 </DialogContent>
@@ -484,14 +490,20 @@ const handleSubmit = async (
                     <DialogClose asChild>
                       <Button variant="outline">Cancel</Button>
                     </DialogClose>
-                    <DialogClose asChild>
                       <Button
-                        disabled={loadingCast}
-                        onClick={() => handleSubmit(submitCastAction, false)}
-                      >
-                        {loadingCast ? "Sending..." : "Send"}
-                      </Button>
-                    </DialogClose>
+                          disabled={loadingCast}
+                          onClick={() =>
+                            handleSubmit(
+                              submitCastAction,
+                              false,
+                              scope ?? "Home",
+                              scopeCode ?? 0
+                            )
+                          }
+                        >
+                          {loadingCast ? "Sending..." : "Send"}
+                        </Button>
+
                   </DialogFooter>
                 </DialogContent>
               </Dialog>

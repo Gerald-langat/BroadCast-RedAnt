@@ -18,7 +18,7 @@ export interface IPost extends IPostBase, Document {
 
 // Document methods
 interface IPostMethods {
-  removePost(): Promise<void>;
+  removeProduct(): Promise<void>;
 }
 
 // Static methods
@@ -52,7 +52,7 @@ const PostSchema = new Schema<IPostDocument>(
 );
 
 // Instance method
-PostSchema.methods.removePost = async function () {
+PostSchema.methods.removeProduct = async function () {
   try {
     await this.model("Market").deleteOne({ _id: this._id });
   } catch (error) {

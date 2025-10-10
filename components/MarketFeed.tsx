@@ -1,5 +1,6 @@
 "use client";
 
+import deletePostAction from "@/app/actions/deletemarketAction";
 import { submitCastAction } from "@/app/actions/submitMarketAction";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,14 +12,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { formatNumber } from "@/lib/formatnumber";
 import { IPostDocument } from "@/mongodb/models/marketpost";
 import { useUser } from "@clerk/nextjs";
-import { ImageIcon, MessageCircleMore, MoreHorizontal } from "lucide-react";
+import { ImageIcon, MessageCircleMore, Trash2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useChatContext } from "stream-chat-react";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 export default function MarketFeed({ posts }: { posts: IPostDocument[] }) {
   const [files, setFiles] = useState<File[]>([]);
@@ -229,7 +230,7 @@ const handleStartChat = async (targetUserId: string) => {
       {/* ✅ Product Grid */}
       <div className="max-w-6xl mx-auto py-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {posts.map((post) => (
-          <div key={String(post._id)} className="card bg-base-100 shadow-sm">
+          <div key={String(post._id)} className="card bg-base-100 shadow-sm border-[1px] rounded-md">
             <figure className="h-40">
               <img
                 src={
@@ -240,28 +241,18 @@ const handleStartChat = async (targetUserId: string) => {
                 className="object-cover w-full h-full rounded-md"
               />
             </figure>
-            <div className="card-body">
-              <p className="font-semibold text-primary">Ksh {post.cost}</p>
+            <div className="card-body p-2">
+              <p className="font-semibold text-primary">Ksh {formatNumber(post.cost)}</p>
               <h2 className="card-title">{post.productName}</h2>
               <p className="line-clamp-2 break-words">{post.description}</p>
-              <div className="card-actions justify-end">
+              <div className="card-actions justify-between items-center mt-2 flex">
                 <Button onClick={() => handleStartChat(post.user.userId)} className="border-[1px]">
                   <MessageCircleMore size={16} /> Chat
                 </Button>
-                <Popover>
-                    <PopoverTrigger>
-                      <MoreHorizontal />
-                    </PopoverTrigger>
-                    <PopoverContent className="dark:bg-gray-800">
                       {user?.id === post.user.userId && (
-                                  <div
-                                    onClick={() => { deletePostAction(String(post._id))}}
-                                  >
-                                    <p className="text-red-600 cursor-pointer">Delete</p>
-                                  </div>
-                                )}         
-                    </PopoverContent>
-                  </Popover>
+                      <Trash2Icon className="text-red-600 cursor-pointer"  
+                      onClick={() => {deletePostAction(String(post._id))}}/>
+                       )}      
               </div>
             </div>
           </div>

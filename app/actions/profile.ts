@@ -12,7 +12,10 @@ export default async function createProfileAction({
   Category,
   County,
   Constituency,
+  countyCode,
+  constituencyCode,
   Ward,
+  wardCode,
   imageUrl,
   acceptedTerms,
 }: {
@@ -22,8 +25,11 @@ export default async function createProfileAction({
   Category: string;
   County: string;
   Constituency: string;
+  countyCode: number | null;
+  constituencyCode: number | null;
   Ward: string;
-  imageUrl: string;
+  wardCode?: number | null;
+  imageUrl?: string;
   acceptedTerms: boolean;
 }) {
   const user = await currentUser();
@@ -41,14 +47,20 @@ export default async function createProfileAction({
     lastName,
     nickName,
     category: Category,
-    county: County,             
-    constituency: Constituency, 
-    ward: Ward,                 
+    county: County,    
+    countyCode,                 // 👈 now matches schema         
+    constituency: Constituency,
+    constituencyCode,           // 👈 now matches schema 
+    ward: Ward,  
+    wardCode,               
     userImg: imageUrl,
     acceptedTerms,              // 👈 now matches schema
   });
 
+ 
+   const plainPost = JSON.parse(JSON.stringify(profile));
 
+return plainPost; 
 
 } catch (error) {
   console.error("error ", error);

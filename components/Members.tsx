@@ -1,5 +1,6 @@
 "use client"
 
+import { formatNumber } from "@/lib/formatnumber";
 import { IProfile } from "@/mongodb/models/profile";
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
@@ -74,7 +75,7 @@ function Members() {
   return (  
       <div className='flex flex-col space-y-1  mr-6 rounded-lg border p-4 mt-1'>
         <div className="flex justify-between items-center">
-           <p>members{users.length}</p>
+           <p>members {formatNumber(users.length)}</p>
             <Link href="/members" className="text-xs cursor-pointer text-blue-500">View all members</Link> 
         </div>   
       {users.map(user => (

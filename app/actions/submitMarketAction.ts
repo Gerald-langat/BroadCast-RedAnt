@@ -40,9 +40,10 @@ export const submitCastAction = async (
     });
 
     revalidatePath("/");
+ 
+   const plainPost = JSON.parse(JSON.stringify(postCreated));
 
-    console.log("Market post created:", postCreated);
-    return postCreated.toObject({ getters: true, versionKey: false });
+return plainPost; 
   } catch (err) {
     console.error("submitCastAction error:", err);
     throw err;
