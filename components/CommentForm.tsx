@@ -2,10 +2,9 @@
 
 import createCommentAction from "@/app/actions/createCommentAction";
 import { useUser } from "@clerk/nextjs";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { toast } from "sonner";
-import { IProfileBase } from "@/mongodb/models/profile";
 import { useProfile } from "./useProfile";
 
 function CommentForm({ postId }: { postId: string }) {
@@ -36,7 +35,7 @@ function CommentForm({ postId }: { postId: string }) {
   return (
     <>
     {loadingProfile ? (
-      <div>Loading...<span className="loading loading-infinity loading-md"></span></div>
+      <div>Loading Comments...<span className="loading loading-infinity loading-md"></span></div>
     ) : ( 
     <form
       ref={ref}

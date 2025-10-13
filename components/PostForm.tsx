@@ -1,10 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ImageIcon, Plus, PlusIcon, SmilePlus } from "lucide-react";
+import { ImageIcon, Plus, SmilePlus } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogClose,

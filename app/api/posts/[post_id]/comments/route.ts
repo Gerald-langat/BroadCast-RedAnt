@@ -1,7 +1,7 @@
 import connectDB from "@/mongodb/db";
 import { ICommentBase } from "@/mongodb/models/comment";
 import { Post } from "@/mongodb/models/post";
-import { IUser } from "@/types/user";
+import { IProfileBase } from "@/mongodb/models/profile";
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -28,7 +28,7 @@ export async function GET(
 }
 
 export interface AddCommentRequestBody {
-  user: IUser;
+  user: IProfileBase;
   text: string;
 }
 

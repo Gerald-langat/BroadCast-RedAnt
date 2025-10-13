@@ -21,7 +21,7 @@ export const submitCastAction = async (
     await connectDB();
 
     // Fetch full profile from DB
-    const userDB: IProfileBase | null = await Profile.findOne({ userId: user.id });
+    const userDB: IProfileBase | null = await Profile.findOne({ userId: user.id,   $or: [{ isArchived: false }, { isArchived: { $exists: false } }],  });
     if (!userDB) throw new Error("User profile not found");
 
     // Map fields to match Post schema

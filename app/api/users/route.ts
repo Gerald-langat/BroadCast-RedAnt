@@ -10,7 +10,10 @@ export async function GET(req: Request) {
     let users;
 
       // return all users if no query
-      users = await Profile.find();
+      users = await Profile.find({
+  $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
+});
+
     
     return NextResponse.json(users);
   } catch (error) {

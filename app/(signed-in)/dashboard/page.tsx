@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useStreamUser } from "@/components/UserSyncWrapper";
-import { VideoIcon } from "lucide-react";
+import { VideoIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Channel, ChannelHeader, MessageInput, MessageList, Thread, useChatContext, Window } from "stream-chat-react";
 
@@ -42,7 +42,7 @@ try {
 }
 
   return (
-    <div className="flex flex-col w-full flex-1">
+    <div className="flex flex-col w-full flex-1 bg-white">
       {channel ? (
         <Channel>
           <Window>
@@ -57,7 +57,7 @@ try {
     <div className="flex space-x-2 items-center">
       <Button
         variant="outline"
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 bg-white"
         onClick={handleCall}
       >
         <VideoIcon className="w-4 h-4" />
@@ -66,10 +66,10 @@ try {
 
       <Button
         variant="outline"
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 bg-white"
         onClick={handleLeaveChat}
       >
-        <VideoIcon className="text-red-500 hover:text-red-600 hover:bg-red-50" />
+        <XIcon className="text-red-500 hover:text-red-600 hover:bg-red-50" />
         Leave Chat
       </Button>
     </div>

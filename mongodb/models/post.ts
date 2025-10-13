@@ -13,8 +13,8 @@ export interface IPostBase {
   likes?: string[];
   recastedBy: string[];  // 👈 new
   videoUrl: string | null;
-  isDeleted: boolean;   // ✅ added
-  deletedAt: Date | null;  // ✅ added
+  isArchived?: boolean;
+  archivedAt?: Date | null; // ✅ added
 }
 
 export interface IPost extends IPostBase, Document {
@@ -63,8 +63,8 @@ const PostSchema = new Schema<IPostDocument>(
     default: [],
   },
 
-   isDeleted: { type: Boolean, default: false },   // ✅ added
-    deletedAt: { type: Date, default: null },
+     isArchived: { type: Boolean, default: false },
+    archivedAt: { type: Date, default: null },
 
   },
   {
@@ -129,7 +129,7 @@ PostSchema.methods.commentOnPost = async function (commentToAdd: ICommentBase) {
 
 PostSchema.statics.getAllPosts = async function () {
   try {
-    const posts = await this.find({ isDeleted: { $ne: true } })
+    const posts = await this.find({  $or: [{ isArchived: false }, { isArchived: { $exists: false } }], })
       .sort({ createdAt: -1 })
       .populate({
         path: "comments",

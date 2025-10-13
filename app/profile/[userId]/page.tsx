@@ -1,20 +1,26 @@
 "use client";
 
+import deletePostAction from '@/app/actions/deleteAccount';
 import { ThemeToggle } from '@/components/themeToggle';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { useCreateNewChat } from '@/hooks/useCreateNewChat';
-import { IPostBase } from '@/mongodb/models/post';
+import { IPostDocument } from '@/mongodb/models/post';
 import { IProfileBase } from '@/mongodb/models/profile';
 import { useUser } from '@clerk/nextjs';
-import { LayoutPanelLeft, MessageCircleMore, Plus } from 'lucide-react';
+import { ImageIcon, LayoutPanelLeft, MessageCircleMore, PencilLineIcon, Plus } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { use, useEffect, useState } from 'react';
+import { use, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 function Page({ params }: { params: Promise<{ userId: string }> }) {
   const [userData, setUserData] = useState<IProfileBase | null>(null);
   const [loading, setLoading] = useState(true);
-  const [posts, setPosts] = useState<IPostBase[]>([]);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [posts, setPosts] = useState<IPostDocument[]>([]);
   const [followers, setFollowers] = useState<IProfileBase[]>([]);
   const [following, setFollowing] = useState<IProfileBase[]>([]);
   const [postsCount, setPostsCount] = useState<number>(0);
@@ -25,6 +31,11 @@ function Page({ params }: { params: Promise<{ userId: string }> }) {
   const { user } = useUser();
   const createNewChat = useCreateNewChat();
   const { userId } = use(params);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [File, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+   
 
   useEffect(() => {
     if (!userId) return;
@@ -83,24 +94,82 @@ function Page({ params }: { params: Promise<{ userId: string }> }) {
     fetchUserData();
   }, [userId]);
 
-  const handleClick = async () => {
-    if (!user?.id || !userId) return;
+const handleClick = async () => {
+  if (!user?.id || !userId) return;
 
-    const res = await fetch("/api/stream/token", {
+  // 🔹 Get user token from your backend
+  const res = await fetch("/api/stream/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: user.id }),
+  });
+
+  // 🔹 Pass the token to createNewChat
+  const channel = await createNewChat({
+    members: [user.id, userId],
+    createdBy: user.id,
+  });
+
+  router.push(`/dashboard?channel=${channel.id}`);
+};
+
+const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setPreview(URL.createObjectURL(selectedFile));
+    }
+  };
+
+const handleSubmit = async () => {
+  if (!File || !user?.id) return;
+
+  try {
+    setLoadingProfile(true);
+
+    const formData = new FormData();
+    formData.append("file", File);
+    formData.append("upload_preset", "broadcast"); // ⚠️ required
+
+    const res = await fetch(
+      "https://api.cloudinary.com/v1_1/dmzw85kqr/image/upload",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Cloudinary error:", data);
+      throw new Error(data.error?.message || "Upload failed");
+    }
+
+    const imageUrl = data.secure_url;
+
+    setUserData((prev) => (prev ? { ...prev, userImg: imageUrl } : prev));
+    setPreview(null);
+    setFile(null);
+
+    // Optionally save to your DB
+    await fetch("/api/profile/update-image", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: user.id }),
-    });
-    const { token } = await res.json();
-
-    const channel = await createNewChat({
-      members: [user.id, userId],
-      createdBy: user.id,
-      userToken: token,
+      body: JSON.stringify({ userId: user.id, userImg: imageUrl }),
     });
 
-    router.push(`/dashboard?channel=${channel.id}`);
-  };
+  } catch (err) {
+    console.error("Upload error:", err);
+    toast.error("Failed to update image");
+  } finally {
+    setLoadingProfile(false);
+  }
+    closeRef.current?.click();
+    toast.success("Profile image updated!");
+
+};
+
 
     const handleFollow = async (targetUser: IProfileBase) => {
   try {
@@ -139,7 +208,7 @@ function Page({ params }: { params: Promise<{ userId: string }> }) {
         <div className="flex w-full justify-between">
           <LayoutPanelLeft size={20} />
           <p className="font-bold">Profile</p>
-          <ThemeToggle />
+            <ThemeToggle />
         </div>
 
         {/* Profile Info */}
@@ -152,17 +221,64 @@ function Page({ params }: { params: Promise<{ userId: string }> }) {
               alt="profile"
               className="h-24 w-24 rounded-full p-2"
             />
-            <div className="border-[1px] rounded-full absolute ml-16 bg-green-600 mt-16">
-              <Plus size={20} className="text-white font-mono" />
+            <div className="border-[1px] rounded-full absolute ml-14 bg-green-600 mt-16 cursor-pointer" >
+               <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                hidden
+                onChange={handleImageChange}
+              />
+               <Dialog>
+                  <DialogTrigger asChild>
+                      <Plus size={20} className="text-white" />
+                  </DialogTrigger>
+
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Change Image</DialogTitle>
+                    </DialogHeader>
+                    {/* Status Image Preview */}
+                    {(preview || userData?.userImg) && (
+                      <img
+                        src={preview || userData?.userImg}
+                        alt="status preview"
+                        className="h-24 w-24 rounded-md mt-2"
+                      />
+                    )}
+            
+                    <DialogFooter className='flex items-center'>
+                      {/* Action buttons */}
+                      <div className="flex items-center gap-1 border-[1px] rounded-md px-2 cursor-pointer w-fit mt-4 p-2 mr-auto"  onClick={() => fileInputRef.current?.click()}>
+                      <PencilLineIcon
+                        size={20}
+                      />
+                      change image
+                    </div>
+                      <DialogClose asChild>
+                        <Button variant="outline">Cancel</Button>
+                      </DialogClose>
+                      <DialogClose asChild>
+                     <button ref={closeRef} className="hidden" />
+                      </DialogClose>
+                        <Button
+                          disabled={loading}
+                          onClick={() => handleSubmit()}
+                        >
+                          {loadingProfile ? "Updating..." : "Update"}
+                        </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
             </div>
             <div>
               <p className="font-bold">{userData?.firstName}</p>
               <p>@{userData?.nickName}</p>
             </div>
-          </div>
-
-         
+          </div>         
         </div>
+
+
 
         {/* Buttons */}
         <div className="w-full space-x-4 flex">
@@ -188,6 +304,15 @@ function Page({ params }: { params: Promise<{ userId: string }> }) {
                 Chat
               </div>
             )}
+          </div>
+          <div className='flex items-center gap-1 border-[1px] rounded-md px-2 cursor-pointer'>
+            {me && (
+                <div
+                  onClick={() => { deletePostAction(String(userData._id))}}
+                >
+                  <p className="text-red-600 cursor-pointer text-sm">Delete Account</p>
+                </div>
+              )} 
           </div>
         </div>
 
@@ -222,10 +347,40 @@ function Page({ params }: { params: Promise<{ userId: string }> }) {
         {/* Content Area */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 w-full">
           {activeTab === "posts" &&
-            posts.map((post, idx) => (
-              <div key={idx} className=" rounded-lg p-2">
-                <p>{post.cast}</p>
-              </div>
+            posts.map((post) => (
+              <div key={String(post._id)}>
+                      <Link href={`fullMedia/${String(post._id)}`}>
+                      <p className="px-4 pb-2 mt-2">{post.cast}</p>
+                      </Link>
+                          {post.imageUrls && post.imageUrls.length === 1 ? (
+                            <Link href={`fullMedia/${String(post._id)}`}>
+                              <img
+                                src={post.imageUrls[0]}
+                                alt="Post Image"
+                                className="w-full mx-auto"
+                              />
+                              </Link>
+                          ) : post.imageUrls && post.imageUrls.length > 1 ? (
+                            <Link href={`fullMedia/${String(post._id)}`} className="grid grid-cols-2  gap-1">
+                              {post.imageUrls.map((url: string, idx: number) => (
+                                <img
+                                  key={idx}
+                                  src={url}
+                                  alt={`Post Image ${idx + 1}`}
+                                  className="w-full h-48 mx-auto object-cover"
+                                />
+                              ))}
+                            </Link>
+                          ) : post.videoUrl ? (
+                            <video
+                              src={post.videoUrl || ""}
+                              controls
+                              muted
+                              playsInline
+                              className="w-full h-60 mx-auto rounded-lg"
+                            />
+                          ) : null}
+                    </div>
             ))}
 
           {activeTab === "followers" &&

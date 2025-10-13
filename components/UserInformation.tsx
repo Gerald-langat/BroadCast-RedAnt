@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { IPostDocument } from "@/mongodb/models/post";
 import { IProfileBase, Profile } from "@/mongodb/models/profile";
 import Link from "next/link";
-import { Building2Icon, HomeIcon, MessageSquareMoreIcon, NewspaperIcon, PauseCircleIcon, User2Icon } from "lucide-react";
+import { Building2Icon, HomeIcon, MessageSquareMoreIcon, NewspaperIcon, PauseCircleIcon } from "lucide-react";
 import Members from "./Members";
 import { formatNumber } from "@/lib/formatnumber";
 
@@ -19,7 +19,7 @@ async function UserInformation({ posts }: { posts: IPostDocument[] }) {
       []
   );
 
-     const userDB: IProfileBase | null = await Profile.findOne({ userId: user?.id });
+     const userDB: IProfileBase | null = await Profile.findOne({ userId: user?.id,   $or: [{ isArchived: false }, { isArchived: { $exists: false } }],  });
  
 
   return (

@@ -65,7 +65,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }, []);
 
   return (
-    <Sidebar variant="floating" >
+    <Sidebar variant="floating" className="bg-white">
       <SidebarHeader>
         <SidebarMenu>
             <SidebarMenuItem>

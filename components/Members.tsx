@@ -11,11 +11,13 @@ function Members() {
     const {user} = useUser();
       const [users, setUsers] = useState<IProfile[]>([]);
     const [following, setFollowing] = useState<string[]>([]); // store following IDs
+    const [loading, setLoading] = useState(false);
     
     
       useEffect(() => {
         const fetchUserScope = async () => {
           try {
+            setLoading(true);
             const res = await fetch("/api/users");
             if (!res.ok) throw new Error("Failed to fetch user scope");
     
@@ -24,6 +26,8 @@ function Members() {
           } catch (err) {
             console.error("Error fetching user scope:", err);
             setUsers([]);
+          } finally {
+            setLoading(false);
           }
         };
     
@@ -77,7 +81,8 @@ function Members() {
         <div className="flex justify-between items-center">
            <p>members {formatNumber(users.length)}</p>
             <Link href="/members" className="text-xs cursor-pointer text-blue-500">View all members</Link> 
-        </div>   
+        </div>
+        {loading && <p>Loading...</p>}   
       {users.map(user => (
         <div className="flex justify-between items-center gap-2 " key={user._id}>
           <Link href={`/profile/${user?.userId}`} className="flex items-center gap-2" >
