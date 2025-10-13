@@ -41,11 +41,13 @@ const toggleRecast = async () => {
   const res = await fetch(`/api/posts/${postId}/recast`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: user.id }),
+    body: JSON.stringify({
+      userId: user.id,
+      userImg: user.imageUrl, // or wherever you store your user image
+    }),
   });
 
   if (!res.ok) {
-    // rollback if failed
     setRecasted(originalRecasted);
     setRecastedBy(originalRecastedBy);
     toast.error("Failed to recast");
@@ -53,8 +55,9 @@ const toggleRecast = async () => {
   }
 
   const data = await res.json();
-  setRecastedBy(data.recastedBy); // ✅ update from backend
+  setRecastedBy(data.recastedBy);
 };
+
 
 
   useEffect(() => {

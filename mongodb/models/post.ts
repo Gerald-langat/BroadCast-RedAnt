@@ -12,6 +12,11 @@ export interface IPostBase {
   comments?: IComment[];
   likes?: string[];
   recastedBy: string[];  // 👈 new
+  recastDetails: {
+    userId: string;
+    userImg: string;
+    recastedAt: Date;
+  }[];
   videoUrl: string | null;
   isArchived?: boolean;
   archivedAt?: Date | null; // ✅ added
@@ -58,10 +63,22 @@ const PostSchema = new Schema<IPostDocument>(
 
     comments: { type: [Schema.Types.ObjectId], ref: "Comment", default: [] },
     likes: { type: [String] },
+    
     recastedBy: {
     type: [String], // store user IDs as plain strings
     default: [],
   },
+
+  recastDetails: {
+  type: [
+    {
+      userId: String,
+      userImg: String,
+      recastedAt: { type: Date, default: Date.now },
+    },
+  ],
+  default: [], // ✅ important
+},
 
      isArchived: { type: Boolean, default: false },
     archivedAt: { type: Date, default: null },
@@ -88,29 +105,12 @@ PostSchema.methods.unlikePost = async function (userId: string) {
   }
 };
 
-
-PostSchema.methods.rePost = async function (userId: string) {
-  try {
-    await this.updateOne({ $addToSet: { likes: userId } });
-  } catch (error) {
-    console.log("error when liking post", error);
-  }
-};
-
-PostSchema.methods.unRePost = async function (userId: string) {
-  try {
-    await this.updateOne({ $pull: { likes: userId } });
-  } catch (error) {
-    console.log("error when unliking post", error);
-  }
-};
-
 PostSchema.methods.removePost = async function () {
   try {
     console.log("Soft deleting post:", this._id);
     await this.updateOne({
-      $set: { isDeleted: true, deletedAt: new Date() },
-    });
+  $set: { isArchived: true, archivedAt: new Date() },
+});
   } catch (error) {
     console.error("Error when soft deleting post:", error);
   }
