@@ -8,29 +8,25 @@ export async function POST(
 ) {
   await connectDB();
   const { post_id } = await context.params;
-  const { userId, userImg } = await req.json(); // ✅ include userImg
+  const { userId, userImg } = await req.json();
 
   const post = await Post.findById(post_id);
   if (!post) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
 
-  if (!Array.isArray(post.recastedBy)) {
-    post.recastedBy = [];
-  }
+  if (!Array.isArray(post.recastedBy)) post.recastedBy = [];
+  if (!Array.isArray(post.recastDetails)) post.recastDetails = [];
 
   if (post.recastedBy.includes(userId)) {
-    // remove recast
-    post.recastedBy = post.recastedBy.filter((id: string) => {id !== userId});
+    // Remove recast
+    post.recastedBy = post.recastedBy.filter((id: string) => id !== userId);
+    post.recastDetails = post.recastDetails.filter(
+      (detail: any) => detail.userId !== userId
+    );
   } else {
-    // add recast
+    // Add recast
     post.recastedBy.push(userId);
-
-    // ✅ optionally store who recasted with image
-    if (!Array.isArray(post.recastDetails)) {
-      post.recastDetails = [];
-    }
-
     post.recastDetails.push({
       userId,
       userImg,
@@ -43,6 +39,6 @@ export async function POST(
   return NextResponse.json({
     message: "Recast updated",
     recastedBy: post.recastedBy,
-    recastDetails: post.recastDetails || [],
+    recastDetails: post.recastDetails,
   });
 }

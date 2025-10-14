@@ -72,6 +72,7 @@ const PostSchema = new Schema<IPostDocument>(
   recastDetails: {
   type: [
     {
+       _id: false,
       userId: String,
       userImg: String,
       recastedAt: { type: Date, default: Date.now },
@@ -129,7 +130,9 @@ PostSchema.methods.commentOnPost = async function (commentToAdd: ICommentBase) {
 
 PostSchema.statics.getAllPosts = async function () {
   try {
-    const posts = await this.find({  $or: [{ isArchived: false }, { isArchived: { $exists: false } }], })
+    const posts = await this.find({
+      $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
+    })
       .sort({ createdAt: -1 })
       .populate({
         path: "comments",
@@ -137,18 +140,31 @@ PostSchema.statics.getAllPosts = async function () {
       })
       .lean();
 
-    return posts.map((post: any) => ({
+    // ✅ Deep serialization
+    const serializedPosts = posts.map((post: any) => ({
       ...post,
       _id: post._id.toString(),
-      comments: post.comments?.map((comment: any) => ({
-        ...comment,
-        _id: comment._id.toString(),
-      })),
-      likes: post.likes || [], // safe, no populate
+      comments:
+        post.comments?.map((comment: any) => ({
+          ...comment,
+          _id: comment._id?.toString() ?? null,
+          createdAt: comment.createdAt?.toString() ?? null,
+          updatedAt: comment.updatedAt?.toString() ?? null,
+        })) || [],
+      likes: post.likes || [],
+      recastDetails:
+        post.recastDetails?.map((r: any) => ({
+          userId: r.userId,
+          userImg: r.userImg,
+          recastedAt: r.recastedAt?.toString() ?? null,
+        })) || [],
+      createdAt: post.createdAt?.toString() ?? null,
+      updatedAt: post.updatedAt?.toString() ?? null,
     }));
 
+    return serializedPosts;
   } catch (error) {
-    console.log("error when getting all posts", error);
+    console.error("Error when getting all posts:", error);
     return [];
   }
 };

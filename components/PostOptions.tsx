@@ -11,6 +11,10 @@ import { cn } from "@/lib/utils";
 import { UnlikePostRequestBody } from "@/app/api/posts/[post_id]/unlike/route";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
+import { useProfile } from "./useProfile";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 function PostOptions({
   postId,
@@ -23,8 +27,9 @@ function PostOptions({
   const { user } = useUser();
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(post.likes);
-  const [recasted, setRecasted] = useState(false);
-const [recastedBy, setRecastedBy] = useState(post.recastedBy ?? []);
+  const [recastedBy, setRecastedBy] = useState(post.recastedBy ?? []);
+    const { profile } = useProfile();
+
 
 
 const toggleRecast = async () => {
@@ -33,22 +38,19 @@ const toggleRecast = async () => {
     return;
   }
 
-  const originalRecasted = recasted;
   const originalRecastedBy = [...recastedBy];
 
-  setRecasted(!recasted);
 
   const res = await fetch(`/api/posts/${postId}/recast`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       userId: user.id,
-      userImg: user.imageUrl, // or wherever you store your user image
+      userImg: profile?.userImg, // or wherever you store your user image
     }),
   });
 
   if (!res.ok) {
-    setRecasted(originalRecasted);
     setRecastedBy(originalRecastedBy);
     toast.error("Failed to recast");
     return;
@@ -112,89 +114,125 @@ const toggleRecast = async () => {
     setLikes(newLikesData);
   };
 
+
   return (
-    <div className="">
-      <div className="flex justify-between p-4">
-        <div>
-          {likes && likes.length > 0 && (
-            <p className="text-xs text-gray-500 cursor-pointer hover:underline">
-              {likes.length} likes
-            </p>
-          )}
-        </div>
-        {recastedBy.length > 0 && (
-          <div>
-            <p className="text-xs text-gray-500">Recasted by:</p>
-            <ul className="text-xs text-gray-600">
-              {[...new Set(recastedBy)].map((uid) => (
-                <li key={uid}>{uid}</li>
-              ))}
-            </ul>
+   <div className="">
+  <div className="flex justify-between p-4">
+    {/* Likes count */}
+    <div>
+      {likes && likes.length > 0 && (
+        <p className="text-xs text-gray-500 cursor-pointer hover:underline">
+          {likes.length} likes
+        </p>
+      )}
+    </div>
 
+    {/* Recasted By Section */}
+    <Popover>
+      <PopoverTrigger asChild>
+    <div>
+      {post?.recastDetails && post.recastDetails.length > 0 && (
+        <div className="flex items-center space-x-2">
+          <p className="text-xs text-gray-500 mb-1">Recasted by:</p>
+
+          <div className="flex flex-row flex-wrap items-center -space-x-2 cursor-pointer">
+            {post.recastDetails.map((detail: any, index: number) => (
+              <Avatar key={index} className="w-6 h-6">
+                <AvatarImage
+                  src={detail.userImg || "https://github.com/shadcn.png"}
+                  alt={detail.userId || "user"}
+                />
+                <AvatarFallback>
+                  {detail.userId ? detail.userId[0].toUpperCase() : "?"}
+                </AvatarFallback>
+              </Avatar>
+            ))}
           </div>
-        )}
-        <div>
-         
-          {post?.comments && post.comments.length > 0 && (
-            <p
-              onClick={() => setIsCommentsOpen(!isCommentsOpen)}
-              className="text-xs text-gray-500 cursor-pointer hover:underline"
-            >
-              {post.comments.length} comments
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div className="flex p-2 justify-between px-2 border-t">
-        <Button
-          variant="ghost"
-          className="postButton"
-          onClick={likeOrUnlikePost}
-        >
-          {/* If user has liked the post, show filled thumbs up icon */}
-          <ThumbsUpIcon
-          size={16}
-             className={cn("mr-1", liked && "text-[#4881c2] fill-[#4881c2]")}
-          />
-          Like
-        </Button>
-
-        <Button
-          variant="ghost"
-          className="postButton"
-          onClick={() => setIsCommentsOpen(!isCommentsOpen)}
-        >
-          <MessageCircle
-          size={16}
-            className={cn(
-              "mr-1",
-              isCommentsOpen && "text-gray-600 fill-gray-600"
-            )}
-          />
-          Comment
-        </Button>
-
-        <Button variant="ghost" className="postButton"  onClick={toggleRecast}>
-        
-          <Repeat2   size={16} className="mr-1" />
-            {recasted ? "Recasted" : "Recast"}
-        </Button>
-
-        <Button variant="ghost" className="postButton">
-          
-          <Send size={16} className="mr-1" />
-          Send
-        </Button>
-      </div>
-
-      {isCommentsOpen && (
-        <div className="p-4">
-          {user?.id && <CommentForm postId={postId} />}
-          <CommentFeed postId={postId} />
         </div>
       )}
     </div>
+</PopoverTrigger>
+<PopoverContent className="dark:bg-gray-800 bg-white">
+  {post?.recastedBy.length} recasts
+    <div>
+      {post?.recastDetails && post.recastDetails.length > 0 && (
+      
+          <div className="items-center space-y-2 cursor-pointer">
+            {post.recastDetails.map((detail: any, index: number) => (
+              <Avatar key={index} className="w-6 h-6">
+                <AvatarImage
+                  src={detail.userImg || "https://github.com/shadcn.png"}
+                  alt={detail.userId || "user"}
+                />
+                <AvatarFallback>
+                  {detail.userId ? detail.userId[0].toUpperCase() : "?"}
+                </AvatarFallback>
+              </Avatar>
+            ))}
+          </div>
+       
+      )}
+    </div>
+  </PopoverContent> 
+</Popover>
+    {/* Comments count */}
+    <div>
+      {post?.comments && post.comments.length > 0 && (
+        <p
+          onClick={() => setIsCommentsOpen(!isCommentsOpen)}
+          className="text-xs text-gray-500 cursor-pointer hover:underline"
+        >
+          {post.comments.length} comments
+        </p>
+      )}
+    </div>
+  </div>
+
+  {/* Action Buttons */}
+  <div className="flex p-2 justify-between px-2 border-t">
+    <Button variant="ghost" className="postButton" onClick={likeOrUnlikePost}>
+      <ThumbsUpIcon
+        size={16}
+        className={cn("mr-1", liked && "text-[#4881c2] fill-[#4881c2]")}
+      />
+      Like
+    </Button>
+
+    <Button
+      variant="ghost"
+      className="postButton"
+      onClick={() => setIsCommentsOpen(!isCommentsOpen)}
+    >
+      <MessageCircle
+        size={16}
+        className={cn(
+          "mr-1",
+          isCommentsOpen && "text-gray-600 fill-gray-600"
+        )}
+      />
+      Comment
+    </Button>
+
+    <Button variant="ghost" className="postButton" onClick={toggleRecast}>
+      <Repeat2 size={16} className="mr-1" />
+     {post.recastedBy.includes(String(user?.id)) ? "Recasted" : "Recast"}
+    </Button>
+
+    <Button variant="ghost" className="postButton">
+      <Send size={16} className="mr-1" />
+      Send
+    </Button>
+  </div>
+
+  {/* Comments Section */}
+  {isCommentsOpen && (
+    <div className="p-4">
+      {user?.id && <CommentForm postId={postId} />}
+      <CommentFeed postId={postId} />
+    </div>
+  )}
+</div>
+
   );
 }
 

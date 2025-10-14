@@ -36,15 +36,12 @@ export async function POST(
   return NextResponse.json({ recastedBy: post.recastedBy });
 }
 
-
-
 export async function GET() {
   try {
     await connectDB();
 
     const posts = await Post.getAllPosts();
-
-    return NextResponse.json(posts);
+   return NextResponse.json(JSON.parse(JSON.stringify(posts)));
   } catch (error) {
     return NextResponse.json(
       { error: "An error occurred while fetching posts" },

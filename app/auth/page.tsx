@@ -7,7 +7,7 @@ import React, { useEffect, useRef, useState } from "react";
 import z from "zod";
 import countyData from "../../counties.json";
 import { redirect, useRouter } from "next/navigation";
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import createProfileAction from "../actions/profile";
 import { Toaster } from "sonner";
 import { useScope } from "../context/ScopeContext";
@@ -176,17 +176,7 @@ const user = useUser();
       <Toaster />
       <div className="h-screen max-w-7xl mx-auto flex justify-center">
         <div className="w-full min-h-screen rounded-lg dark:border-gray-700 flex-grow max-w-2xl">
-                      <SignedOut>
-              <SignInButton />
-              <SignUpButton>
-                <button className="bg-[#6c47ff] text-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer">
-                  Sign Up
-                </button>
-              </SignUpButton>
-            </SignedOut>
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
+          
           <form onSubmit={handleSubmit} className="relative mt-4 p-8 space-y-6">
             {/* First Name */}
             <div className="flex flex-col md:flex-row items-start md:items-center">
