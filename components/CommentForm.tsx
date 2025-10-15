@@ -6,11 +6,11 @@ import { useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { toast } from "sonner";
 import { useProfile } from "./useProfile";
+import { Send, SendHorizonal } from "lucide-react";
 
 function CommentForm({ postId }: { postId: string }) {
   const { user } = useUser();
   const ref = useRef<HTMLFormElement>(null);
-    const { profile, loadingProfile, error } = useProfile();
 
 
   const createCommentActionWithPostId = createCommentAction.bind(null, postId);
@@ -33,10 +33,6 @@ function CommentForm({ postId }: { postId: string }) {
   };
 
   return (
-    <>
-    {loadingProfile ? (
-      <div>Loading Comments...<span className="loading loading-infinity loading-md"></span></div>
-    ) : ( 
     <form
       ref={ref}
       action={(formData) => {
@@ -49,13 +45,7 @@ function CommentForm({ postId }: { postId: string }) {
       }}
       className="flex items-center space-x-1"
     >
-      <Avatar>
-        <AvatarImage src={profile?.userImg} />
-        <AvatarFallback>
-          {profile?.firstName?.charAt(0)}
-          {profile?.lastName?.charAt(0)}
-        </AvatarFallback>
-      </Avatar>
+     
 
       <div className="flex flex-1 border rounded-full px-3 py-2">
         <input
@@ -64,13 +54,12 @@ function CommentForm({ postId }: { postId: string }) {
           placeholder="Add a comment..."
           className="outline-none flex-1 text-sm bg-transparent"
         />
-        <button type="submit" hidden>
-          Comment
+        <button type="submit" >
+          <SendHorizonal className="w-10 h-4 text-blue-500 hover:text-blue-600" />
         </button>
       </div>
     </form>
-)}
-</>
+
   );
 }
 

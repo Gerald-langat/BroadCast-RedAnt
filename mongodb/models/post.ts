@@ -15,6 +15,8 @@ export interface IPostBase {
   recastDetails: {
     userId: string;
     userImg: string;
+    firstName: string;
+    nickName: string;
     recastedAt: Date;
   }[];
   videoUrl: string | null;
@@ -75,6 +77,8 @@ const PostSchema = new Schema<IPostDocument>(
        _id: false,
       userId: String,
       userImg: String,
+      firstName: String,
+      nickName: String,
       recastedAt: { type: Date, default: Date.now },
     },
   ],
@@ -156,6 +160,8 @@ PostSchema.statics.getAllPosts = async function () {
         post.recastDetails?.map((r: any) => ({
           userId: r.userId,
           userImg: r.userImg,
+          firstName: r.firstName,
+          nickName: r.nickName,
           recastedAt: r.recastedAt?.toString() ?? null,
         })) || [],
       createdAt: post.createdAt?.toString() ?? null,

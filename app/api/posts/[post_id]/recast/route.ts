@@ -8,7 +8,7 @@ export async function POST(
 ) {
   await connectDB();
   const { post_id } = await context.params;
-  const { userId, userImg } = await req.json();
+  const { userId, userImg, firstName, nickName } = await req.json();
 
   const post = await Post.findById(post_id);
   if (!post) {
@@ -30,6 +30,8 @@ export async function POST(
     post.recastDetails.push({
       userId,
       userImg,
+      firstName,
+      nickName,
       recastedAt: new Date(),
     });
   }
