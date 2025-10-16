@@ -31,15 +31,16 @@ export interface DeletePostRequestBody {
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { post_id: string } }
+  context: { params: Promise<{ post_id: string }> }
 ) {
   //   auth().protect();
 
   await connectDB();
+  const { post_id } = await context.params;
   const { userId }: DeletePostRequestBody = await request.json();
 
   try {
-    const post = await Post.findById(params.post_id);
+    const post = await Post.findById(post_id);
 
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });

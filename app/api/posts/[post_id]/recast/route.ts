@@ -37,6 +37,7 @@ export async function POST(
   }
 
   await post.save();
+  await post.updateEngagementCount();
 
   return NextResponse.json({
     message: "Recast updated",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MessageCircle, Repeat2, Send, ThumbsUpIcon } from "lucide-react";
+import { EyeIcon, MessageCircle, Repeat2, Send, ThumbsUpIcon } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
@@ -13,6 +13,8 @@ import { formatNumber } from "@/lib/formatnumber";
 import CommentForm from "./CommentForm";
 import CommentFeed from "./CommentFeed";
 import { IPostDocument } from "@/mongodb/models/post";
+import Link from "next/link";
+import followContext from "@/app/context/followContext";
 
 function PostOptions({
   postId,
@@ -41,6 +43,8 @@ function PostOptions({
     recastedAt: string | Date;
   }[]
 >(post.recastDetails ?? []);
+    const { handleFollow, following } = followContext();
+
 
 
   // Set initial states
@@ -137,6 +141,25 @@ function PostOptions({
     }
   };
 
+  const handleShare = async () => {
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Check this out!',
+        text: `${post?.user?.firstName}`,
+        url: `https://broadcastke.com/fullMedia/${postId}`,
+      });
+    } catch (error) {
+      console.error('Error sharing content:', error);
+    }
+  } else {
+    alert('Web Share API is not supported in your browser.');
+  }
+};
+
+
+  const author = user?.id
+
   return (
     <div>
       <div className="flex justify-between p-4">
@@ -177,7 +200,8 @@ function PostOptions({
             recasts {formatNumber(recastedBy.length)}
             <div className="space-y-2 mt-2">
               {recastDetails.map((detail: any, index: number) => (
-                <div key={index} className="flex items-center space-x-2">
+                <div key={index} className="flex justify-between">
+                <Link href={`/profile/${detail.userId}`}  className="flex items-center space-x-2">
                   <Avatar className="w-6 h-6">
                     <AvatarImage
                       src={detail.userImg || "https://github.com/shadcn.png"}
@@ -191,7 +215,18 @@ function PostOptions({
                     <p>{detail.firstName}</p>
                     <p className="text-gray-500 text-xs">@{detail.nickName}</p>
                   </div>
-                </div>
+                </Link>
+                   {author === detail.userId ? (
+             <p>You</p>
+          ): (
+            <button
+              onClick={() => handleFollow(detail.userId)}
+              className="px-3 py-1 rounded-md border-[1px] text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              {following.includes(detail?.userId) ? "Unfollow" : "Follow"}
+            </button>
+          )}
+                  </div>
               ))}
             </div>
           </PopoverContent>
@@ -238,11 +273,18 @@ function PostOptions({
         </Button>
 
         <Button variant="ghost" className="postButton">
+          <EyeIcon  className="mr-1" size={16} />
+          {/* {formatNumber({post?.engagement?.total ?? 0})} */}
+          Views
+        </Button>
+
+        <Button variant="ghost" className="postButton" onClick={handleShare}>
           <Send size={16} className="mr-1" />
           Send
         </Button>
       </div>
 
+        
       {/* Comments */}
       {isCommentsOpen && (
         <div className="p-4">

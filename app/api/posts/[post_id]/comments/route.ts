@@ -50,6 +50,7 @@ export async function POST(
     };
 
     await post.commentOnPost(comment);
+    await post.updateEngagementCount();
     return NextResponse.json({ message: "Comment added successfully" });
   } catch (error) {
     return NextResponse.json(

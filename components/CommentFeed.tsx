@@ -8,8 +8,9 @@ import { IComment } from "@/mongodb/models/comment";
 import { Trash2 } from "lucide-react";
 
 function CommentFeed({ postId }: { postId: string }) {
-   const [post, setPost] = useState<IComment[]>([]);
-     const [loading, setLoading] = useState(false);
+  const [post, setPost] = useState<IComment[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { user } = useUser();
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -28,7 +29,6 @@ function CommentFeed({ postId }: { postId: string }) {
   }, [postId]);
 
 
-  const { user } = useUser();
 
 const author = post.find((comment) => comment.user?.userId === user?.id);
   return (

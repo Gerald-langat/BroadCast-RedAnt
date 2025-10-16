@@ -45,6 +45,8 @@ export async function POST(
     }
 
     await post.likePost(userId);
+   
+    
     return NextResponse.json({ message: "Post liked successfully" });
   } catch (error) {
     return NextResponse.json(
