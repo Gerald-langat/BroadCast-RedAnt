@@ -19,7 +19,8 @@ async function UserInformation({ posts }: { posts: IPostDocument[] }) {
       []
   );
 
-     const userDB: IProfileBase | null = await Profile.findOne({ userId: user?.id,   $or: [{ isArchived: false }, { isArchived: { $exists: false } }],  });
+        const userDB = await Profile.getProfile(String(user?.id));
+     
  
 
   return (
