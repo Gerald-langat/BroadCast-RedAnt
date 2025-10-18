@@ -14,63 +14,61 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { useScope } from "@/app/context/ScopeContext";
-import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { IProfileBase } from "./../mongodb/models/profile";
 import { submitCastAction } from "@/app/actions/submitCastAction";
 import EmojiPicker from "emoji-picker-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import Link from "next/link";
-import { useProfile } from "./useProfile";
+import { submitStatusAction } from "@/app/actions/submitStatusAction";
 
 
 
-function PostForm() {
+function PostForm({ user }: { user: IProfileBase }) {
   const [files, setFiles] = useState<File[]>([]);
   const [preview, setPreview] = useState<string[]>([]);
-  const [statusPreview, setStatusPreview] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [statusPreview, setStatusPreview] = useState<string[]>([]);
   const [loadingStatus, setLoadingStatus] = useState(false);
   const [loadingCast, setLoadingCast] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileStatusInputRef = useRef<HTMLInputElement>(null);
   const ref = useRef<HTMLFormElement>(null);
   const { scopeCode, scope } = useScope();
-  const [sFile, setSFile] = useState<File | null>(null);
+  const [sFiles, setSFiles] = useState<File[]>([]);
   const [statusText, setStatusText] = useState("");
   const [status, setStatus] = useState<any[]>([]);
-    const { profile, loadingProfile, error } = useProfile();
   const [showPicker, setShowPicker] = useState(false);
    const closeRef = useRef<HTMLButtonElement>(null);
 
 
+const fetchStatus = async () => {
+  try {
+    setLoadingStatus(true);
+    const res = await fetch("/api/statusPosts");
+    if (!res.ok) throw new Error("Failed to fetch status");
+
+    const data = await res.json();
+
+    setStatus((prevStatus) => {
+      const combined = [...prevStatus, ...data];
+      const unique = combined.filter(
+        (post, index, self) =>
+          index === self.findIndex(
+            (p) => p.user.userId === post.user.userId
+          )
+      );
+      return unique;
+    });
+  } catch (err) {
+    console.error("Error fetching status:", err);
+  } finally {
+    setLoadingStatus(false);
+  }
+};
 
 useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      const res = await fetch("/api/posts");
-      if (!res.ok) throw new Error("Failed to fetch status");
-
-      const data = await res.json();
-
-      // 1. Filter by scope = "status"
-      const filtered = data.filter((post: any) => post.scope === "status");
-
-      // 2. Keep only the first status per userId
-      const uniqueByUser = filtered.filter(
-        (post: any, index: number, self: any[]) =>
-          index === self.findIndex((p) => p.userId === post.userId)
-      );
-
-      setStatus(uniqueByUser);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  fetchProfile();
+  fetchStatus();
 }, []);
-
 
   // handle multiple files
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,11 +82,12 @@ useEffect(() => {
 
 
   // Handle status image
-  const handleStatusImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setSFile(selectedFile);
-      setStatusPreview(URL.createObjectURL(selectedFile));
+ const handleStatusImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files);
+      setSFiles((prev) => [...prev, ...filesArray]); // keep files
+      const newPreviews = filesArray.map((file) => URL.createObjectURL(file));
+      setStatusPreview((prev) => [...prev, ...newPreviews]); // preview
     }
   };
 
@@ -102,16 +101,14 @@ const handleSubmit = async (
     imageUrls?: string[],
     videoUrl?: string
   ) => Promise<any>,
-  isStatus = false,
   selectedScope?: string,
   selectedScopeCode?: number,
   onSuccess?: (newCast: any) => void
 ) => {
   try {
-    if (isStatus) setLoadingStatus(true);
-    else setLoadingCast(true);
+     setLoadingCast(true);
 
-    const castText = isStatus ? statusText : ref.current?.cast?.value || "";
+    const castText =  ref.current?.cast?.value || "";
     if (!castText.trim()) {
       toast.error("Cannot submit empty cast");
       return;
@@ -152,28 +149,75 @@ const handleSubmit = async (
     ref.current?.reset();
     setPreview([]);
     setFiles([]);
-    setStatusPreview(null);
-    setStatusText("");
-    setSFile(null);
   } catch (err) {
     console.error("Failed to submit cast:", err);
     toast.error("Failed to submit cast");
   } finally {
-    if (isStatus) setLoadingStatus(false);
-    else setLoadingCast(false);
+   setLoadingCast(false);
+  }
+    closeRef.current?.click();
+};
+
+// Generic submit function for status
+const handleSubmitStatus = async (
+  submitStatusAction: (
+    cast: string,
+    imageUrls?: string[],
+    videoUrl?: string
+  ) => Promise<any>,
+  onSuccess?: (newCast: any) => void
+) => {
+  try {
+     setLoadingCast(true);
+
+    const castText =  statusText;
+    if (!castText.trim()) {
+      toast.error("Cannot submit empty cast");
+      return;
+    }
+
+    let imageUrls: string[] = [];
+    let videoUrl: string | undefined;
+
+    const filesToUpload = Array.isArray(files) ? sFiles : [files].filter(Boolean);
+
+    for (const f of filesToUpload.slice(0, 4)) {
+      const formData = new FormData();
+      formData.append("file", f);
+      formData.append("upload_preset", "broadcast");
+      const uploadType = f.type.startsWith("video/") ? "video" : "image";
+
+      const res = await fetch(`https://api.cloudinary.com/v1_1/dmzw85kqr/${uploadType}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (f.type.startsWith("video/")) videoUrl = data.secure_url;
+      else imageUrls.push(data.secure_url);
+    }
+
+    const newCast = await submitStatusAction(castText, imageUrls, videoUrl);
+
+
+    onSuccess?.(newCast);
+    toast.success("Posted successfully");
+
+    // Reset
+    ref.current?.reset();
+    setSFiles([]);
+    setStatusPreview([]);
+    setStatusText("");
+  } catch (err) {
+    console.error("Failed to submit cast:", err);
+    toast.error("Failed to submit cast");
+  } finally {
+   setLoadingCast(false);
   }
     closeRef.current?.click();
 };
 
 
-
-
-  if (loading)
-    return (
-      <p className="w-full md:px-4 xl:max-w-2xl min-h-screen">
-        <span className="loading loading-bars loading-md"></span>
-      </p>
-    );
 
   return (
     <div className="">
@@ -209,13 +253,29 @@ const handleSubmit = async (
     />
 
     {/* Status Image Preview */}
-    {statusPreview && (
-      <img
-        src={statusPreview}
-        alt="status preview"
-        className="h-24 w-24 rounded-md mt-2"
-      />
-    )}
+      {statusPreview.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+            {sFiles.map((f, idx) =>
+              f.type.startsWith("video/") ? (
+                <video
+                  key={idx}
+                  src={statusPreview[idx]}
+                  className="h-24 w-24 rounded-md object-cover"
+                  controls
+                  autoPlay
+                  muted
+                />
+              ) : (
+                <img
+                  key={idx}
+                  src={statusPreview[idx]}
+                  alt={`preview-${idx}`}
+                  className="h-24 w-24 rounded-md object-cover"
+                />
+              )
+            )}
+          </div>
+        )}
 
     <DialogFooter>
       {/* Action buttons */}
@@ -251,13 +311,15 @@ const handleSubmit = async (
         <Button variant="outline">Cancel</Button>
       </DialogClose>
       <DialogClose asChild>
+            {/* Hidden close button used for programmatic close */}
+            <button ref={closeRef} className="hidden" />
+          </DialogClose>
         <Button
           disabled={loadingStatus}
-          onClick={() => handleSubmit(submitCastAction, true, "status", 1)}
+          onClick={() => handleSubmitStatus(submitStatusAction)}
         >
           {loadingStatus ? "Sending..." : "Send"}
         </Button>
-      </DialogClose>
     </DialogFooter>
   </DialogContent>
 </Dialog>
@@ -269,28 +331,33 @@ const handleSubmit = async (
       key={idx}
       className="flex items-center justify-center rounded-full p-1 border-2 w-12 h-12 shrink-0 cursor-pointer"
     >
-      {s.imageUrl ? (
+      {s.imageUrls > 0 ? (
         <Image
-          src={s.imageUrl || "/logo/broadcast.jpg"}
+          src={s.imageUrls[0] || "/logo/broadcast.jpg"}
           width={48}
           height={48}
           alt="status-image"
-          className="rounded-full object-cover w-10 h-10"
+          className="rounded-full object-cover w-10 h-9"
         />
-      ) : (
+      ) : s.videoUrl ? (
+        <video
+          src={s.videoUrl || "/logo/broadcast.jpg"}
+          width={48}
+          height={48}
+          className="rounded-full object-cover w-10 h-9"
+        />
+      ) :(
         <p className="text-[10px] text-center">{s.cast}</p>
       )}
     </Link>
   ))}
 </div>
       </div>
-
-      {/* Cast Form */}
-      <div className="border-[1px] p-2 rounded-md">
+        <div className="border-[1px] p-2 rounded-md">
         <form className="space-y-2" ref={ref}>
           <div className="flex w-full space-x-2">
             <Image
-              src={profile?.userImg || "/logo/Broadcast.jpg"}
+              src={user?.userImg || "/logo/Broadcast.jpg"}
               width={200}
               height={200}
               alt="my prof"
@@ -388,9 +455,8 @@ const handleSubmit = async (
                           onClick={() =>
                             handleSubmit(
                               submitCastAction,
-                              false,
-                              profile?.county,
-                              profile?.countyCode
+                              user?.county,
+                              user?.countyCode
                             )
                           }
                         >
@@ -421,9 +487,8 @@ const handleSubmit = async (
                       onClick={() =>
                         handleSubmit(
                           submitCastAction,
-                          false,
-                          profile?.constituency,
-                          profile?.constituencyCode
+                          user?.constituency,
+                          user?.constituencyCode
                         )
                       }
                     >
@@ -454,9 +519,8 @@ const handleSubmit = async (
                         onClick={() =>
                           handleSubmit(
                             submitCastAction,
-                            false,
-                            profile?.ward,
-                            profile?.wardCode
+                            user?.ward,
+                            user?.wardCode
                           )
                         }
                       >
@@ -487,7 +551,6 @@ const handleSubmit = async (
                           onClick={() =>
                             handleSubmit(
                               submitCastAction,
-                              false,
                               scope ?? "Home",
                               scopeCode ?? 0
                             )
@@ -501,7 +564,7 @@ const handleSubmit = async (
             </div>
           </div>
         </form>
-      </div>
+      </div>    
     </div>
   );
 }

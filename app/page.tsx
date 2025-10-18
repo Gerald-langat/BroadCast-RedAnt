@@ -5,7 +5,7 @@ import Widget from "@/components/Widget";
 import { Post } from "@/mongodb/models/post";
 import { SignedIn } from "@clerk/nextjs";
 import connectDB from "@/mongodb/db";
-import { IProfileBase, Profile } from "@/mongodb/models/profile";
+import {  IProfileBase, Profile } from "@/mongodb/models/profile";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
@@ -23,10 +23,13 @@ export default async function Home() {
   }
 
   // ✅ Fetch profile from MongoDB using Clerk user ID
-  const userDB: IProfileBase | null = await Profile.findOne({ userId: user.id,  $or: [{ isArchived: false }, { isArchived: { $exists: false } }], });
-  if (!userDB) {
-    redirect("/auth");
-  }
+   const userDB = await Profile.getProfile(user.id);
+    const safeUser = userDB ? JSON.parse(JSON.stringify(userDB)) : null;
+
+if (!safeUser) {
+  redirect("/auth");
+}
+
 
   // ✅ Fetch all posts
   const posts = await Post.getAllPosts();
@@ -43,7 +46,7 @@ export default async function Home() {
       {/* Main content */}
       <section className="col-span-full md:col-span-6 xl:col-span-4 xl:max-w-xl mx-auto w-full">
         <SignedIn>
-          <PostForm />
+          <PostForm user={safeUser}/>
         </SignedIn>
         <PostFeed posts={posts} />
       </section>

@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Model, Document } from "mongoose";
 
 export interface IProfileBase {
   _id?: string;
@@ -19,16 +19,16 @@ export interface IProfileBase {
   archivedAt?: Date | null;
 }
 
-export interface IProfile extends Document, IProfileBase {
-  createdAt: Date;
-  updatedAt: Date;
-  updateImage(userId: string): Promise<void>;
+export interface IProfileMethods {
+  updateImage(userImg: string): Promise<void>;
   removeProfile(): Promise<void>;
-
-
 }
 
-const ProfileSchema = new Schema<IProfile>(
+export interface IProfileModel extends Model<IProfileBase, {}, IProfileMethods> {
+  getProfile(userId: string): Promise<IProfileBase | null>;
+}
+
+const ProfileSchema = new Schema<IProfileBase, IProfileModel, IProfileMethods>(
   {
     userId: { type: String, required: true },
     userImg: { type: String },
@@ -36,45 +36,51 @@ const ProfileSchema = new Schema<IProfile>(
     lastName: { type: String, required: true },
     nickName: { type: String, required: true },
     county: { type: String },
-     countyCode: { type: Number },
+    countyCode: { type: Number },
     constituency: { type: String },
     constituencyCode: { type: Number },
     ward: { type: String },
     wardCode: { type: Number },
     category: { type: String },
     acceptedTerms: { type: Boolean, required: true },
-
-      // 🟢 Add these two for soft delete support
     isArchived: { type: Boolean, default: false },
     archivedAt: { type: Date, default: null },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
+// 🧩 Instance methods
 ProfileSchema.methods.removeProfile = async function () {
   try {
-    console.log("Profile archived:", this._id);
     await this.updateOne({
       $set: { isArchived: true, archivedAt: new Date() },
     });
   } catch (error) {
-    console.error("Error when soft deleting post:", error);
+    console.error("Error when soft deleting profile:", error);
   }
 };
 
 ProfileSchema.methods.updateImage = async function (userImg: string) {
   try {
-    this.userImg = userImg; // update field on the document
-    await this.save();      // persist change properly
+    this.userImg = userImg;
+    await this.save();
   } catch (error) {
     console.error("Error when updating image:", error);
   }
 };
 
+// 🧩 Static method (typed)
+ProfileSchema.statics.getProfile = async function (userId: string) {
+  return this.findOne({
+    userId,
+    $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
+  }).lean<IProfileBase>(); // ensure plain object
+};
 
-// ✅ Clear cached model to avoid "user.userId required"
+// ✅ Fix model recompilation issue
 delete mongoose.models.Profile;
-export const Profile =
-  mongoose.models.Profile || mongoose.model<IProfile>("Profile", ProfileSchema);
+
+// ✅ Correctly type the model export
+export const Profile: IProfileModel =
+  (mongoose.models.Profile as unknown as IProfileModel) ||
+  mongoose.model<IProfileBase, IProfileModel>("Profile", ProfileSchema);

@@ -2,7 +2,7 @@
 
 import followContext from "@/app/context/followContext";
 import { formatNumber } from "@/lib/formatnumber";
-import { IProfile } from "@/mongodb/models/profile";
+import { IProfileBase } from "@/mongodb/models/profile";
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 
 function Members() {
     const {user} = useUser();
-      const [users, setUsers] = useState<IProfile[]>([]);
+      const [users, setUsers] = useState<IProfileBase[]>([]);
     const [loading, setLoading] = useState(false);
     const { handleFollow, following } = followContext();
     

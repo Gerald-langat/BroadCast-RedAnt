@@ -1,10 +1,11 @@
 "use client";
 
-import { IPostDocument } from "@/mongodb/models/post";
 import { useUser } from "@clerk/nextjs";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { IPostDocument } from "@/mongodb/models/statusPost";
+import deleteStatusAction from "@/app/actions/deleteStatusAction";
 
 export default function Page() {
   const params = useParams<{ userId: string }>();
@@ -14,7 +15,6 @@ export default function Page() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
-
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { user } = useUser();
   const router = useRouter();
@@ -23,7 +23,7 @@ export default function Page() {
   useEffect(() => {
     if (!userId) return;
 
-    fetch(`/api/userPosts?userId=${userId}`)
+    fetch(`/api/statusPosts?userId=${userId}`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -92,15 +92,12 @@ export default function Page() {
     setIsPaused((prev) => !prev);
   };
 
-  const deleteStatus = () => {
-    // implement delete logic (API call)
-    console.log("Deleting status", status[currentIndex]._id);
-  };
-
-  if (loading) return <p>Loading...</p>;
+  if (loading) return  <p className="max-w-6xl mx-auto justify-center min-h-screen items-center">Loading...</p>;
   if (status.length === 0) return <p>No status found for this user.</p>;
 
   const currentStatus = status[currentIndex];
+
+  const author = currentStatus?.user?.userId === user?.id;
 
   return (
     <div className="relative flex flex-col items-center justify-center h-screen bg-black text-white">
@@ -128,23 +125,22 @@ export default function Page() {
 
       {/* Main Content */}
       <div className="flex-grow flex flex-col items-center justify-center w-full py-6">
-        {currentStatus?.videos ? (
+        {currentStatus?.videoUrl? (
           <video
-            src={currentStatus.videos}
+            src={currentStatus.videoUrl}
             muted
             controls
-            autoPlay
             className="object-contain w-[60%] max-h-[80vh]"
             onEnded={handleNext}
           />
-        ) : currentStatus?.imageUrl ? (
+        ) : currentStatus?.imageUrls?.length === 1 ? (
           <img
-            src={currentStatus.imageUrl}
+            src={currentStatus.imageUrls[0]}
             alt="Status"
             className="max-h-[80vh] object-contain"
           />
         ) : (
-          <p className="text-lg">{currentStatus.cast}</p>
+         null
         )}
 
         {currentStatus?.cast && (
@@ -157,15 +153,15 @@ export default function Page() {
 
         {/* Buttons */}
         <div className="mt-4 flex space-x-3">
-          {userId === user?.id && (
+          {author && (
             <button
-              onClick={deleteStatus}
+              onClick={() => {deleteStatusAction(String(currentStatus._id))}}
               className="bg-red-500 text-white px-4 py-2 rounded"
             >
               Delete
             </button>
           )}
-          {!currentStatus?.videos && (
+          {!currentStatus?.videoUrl && (
             <button
               onClick={pauseOrResume}
               className="bg-gray-700 text-white px-4 py-2 rounded"
