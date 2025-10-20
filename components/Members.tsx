@@ -33,7 +33,7 @@ function Members({ users }: { users: IProfileBase[] }) {
               <p className="text-sm min-w-13 max-w-13 truncate">{user.nickName}</p>
           </Link>
           {author === user.userId ? (
-             <p>You</p>
+             <p>{loading ? "loading..." : "You"}</p>
           ): (
             <button
               onClick={() => handleFollow(user.userId)}
