@@ -8,6 +8,7 @@ import connectDB from "@/mongodb/db";
 import {  IProfileBase, Profile } from "@/mongodb/models/profile";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import Members from "@/components/Members";
 
 export const revalidate = 0;
 
@@ -26,6 +27,10 @@ export default async function Home() {
    const userDB = await Profile.getProfile(user.id);
     const safeUser = userDB ? JSON.parse(JSON.stringify(userDB)) : null;
 
+
+      const users = await Profile.find().lean(); // 🔑 convert docs to plain objects
+      const safeUsers = JSON.parse(JSON.stringify(users)); // ensure no non-serializable values
+    
 if (!safeUser) {
   redirect("/auth");
 }
@@ -40,6 +45,7 @@ if (!safeUser) {
       <section className="hidden md:block md:col-span-2">
         <div className="sticky top-20">
           <UserInformation posts={posts} />
+          <Members users={safeUsers}/>
         </div>
       </section>
 

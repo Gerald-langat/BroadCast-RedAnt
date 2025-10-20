@@ -2,7 +2,7 @@ import AllUsers from "@/components/AllUsers";
 import connectDB from "@/mongodb/db";
 import { Profile } from "@/mongodb/models/profile";
 
-async function MemberPage() {
+async function memberPage() {
   await connectDB();
 
   const users = await Profile.find().lean(); // 🔑 convert docs to plain objects
@@ -15,4 +15,4 @@ async function MemberPage() {
   );
 }
 
-export default MemberPage;
+export default memberPage;

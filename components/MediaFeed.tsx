@@ -6,6 +6,10 @@ import Link from "next/link";
 function MediaFeed({ posts }: { posts: IPostDocument[] }) {
   const { scope } = useScope();
 
+if(posts.length === 0) {
+    return <div className=" max-w-4xl mx-auto justify-between min-h-screen items-center">No media available.</div>;
+}
+
   return (
     <div className="pb-20 max-w-4xl grid grid-cols-2 md:grid-cols-4 gap-4">
   {posts

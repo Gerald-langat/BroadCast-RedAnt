@@ -223,7 +223,9 @@ function PostOptions({
               onClick={() => handleFollow(detail.userId)}
               className="px-3 py-1 rounded-md border-[1px] text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
             >
-              {following.includes(detail?.userId) ? "Unfollow" : "Follow"}
+              {following.some((f: any) => f.userId === detail.userId)
+    ? "Unfollow"
+    : "Follow"}
             </button>
           )}
                   </div>

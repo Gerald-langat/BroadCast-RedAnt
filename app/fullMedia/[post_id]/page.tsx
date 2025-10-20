@@ -57,7 +57,7 @@ export default function FullMediaPage() {
   }
 
   return (
-    <div className="w-full flex space-x-6 mt-6 px-4">
+    <div className="w-full md:flex space-x-6 mt-6 px-4">
       {/* Post Text */}
       <div>
         {post.cast && <p className="mb-4">{post.cast}</p>}

@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ScopeProvider } from "./context/ScopeContext";
 import { ThemeProvider } from "@/components/theme-provider";
 import ConditionalHeader from "@/components/ConditionalHeader";
+import { FollowProvider } from "./context/followContext";
 
 export const metadata: Metadata = {
   title: "Broadcast",
@@ -28,7 +29,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             disableTransitionOnChange
           >
             <ScopeProvider>
-              <Toaster position="top-center" />
+              <FollowProvider>
+                <Toaster position="top-center" />
               
               <div>
                 <ConditionalHeader />
@@ -36,6 +38,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   {children}
                 </main>
               </div>
+              </FollowProvider>
+              
             </ScopeProvider>
           </ThemeProvider>
         </ClerkProvider>

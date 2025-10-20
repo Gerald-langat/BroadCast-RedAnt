@@ -23,7 +23,6 @@ import Link from "next/link";
 import { submitStatusAction } from "@/app/actions/submitStatusAction";
 
 
-
 function PostForm({ user }: { user: IProfileBase }) {
   const [files, setFiles] = useState<File[]>([]);
   const [preview, setPreview] = useState<string[]>([]);

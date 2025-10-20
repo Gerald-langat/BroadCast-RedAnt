@@ -1,15 +1,15 @@
 "use client";
 
 import deletePostAction from '@/app/actions/deleteAccount';
+import useFollowContext from '@/app/context/followContext';
 import { ThemeToggle } from '@/components/themeToggle';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { useCreateNewChat } from '@/hooks/useCreateNewChat';
 import { IPostDocument } from '@/mongodb/models/post';
 import { IProfileBase } from '@/mongodb/models/profile';
 import { useUser } from '@clerk/nextjs';
-import { ImageIcon, LayoutPanelLeft, MessageCircleMore, PencilLineIcon, Plus } from 'lucide-react';
+import { LayoutPanelLeft, MessageCircleMore, PencilLineIcon, Plus } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -18,14 +18,11 @@ import { toast } from 'sonner';
 
 function Page({ params }: { params: Promise<{ userId: string }> }) {
   const [userData, setUserData] = useState<IProfileBase | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingData, setLoadingData] = useState(true);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [posts, setPosts] = useState<IPostDocument[]>([]);
-  const [followers, setFollowers] = useState<IProfileBase[]>([]);
-  const [following, setFollowing] = useState<IProfileBase[]>([]);
   const [postsCount, setPostsCount] = useState<number>(0);
-  const [followersCount, setFollowersCount] = useState<number>(0);
-  const [followingCount, setFollowingCount] = useState<number>(0);
+  
   const [activeTab, setActiveTab] = useState<"posts" | "followers" | "following">("posts");
   const router = useRouter();
   const { user } = useUser();
@@ -35,64 +32,50 @@ function Page({ params }: { params: Promise<{ userId: string }> }) {
   const [File, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const { handleFollow, following, followers, followingCount, followersCount, loading  } = useFollowContext();
+  
    
-
   useEffect(() => {
-    if (!userId) return;
+  if (!userId) return;
 
-    // Fetch posts
-    fetch(`/api/userPosts?user_id=${userId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setPosts(data || []);
-        setPostsCount(data.length || 0);
-      })
-      .catch(() => {
-        setPosts([]);
-        setPostsCount(0);
-      });
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch(`/api/user?userId=${userId}`);
+      const data = await res.json();
 
-    // Fetch followers
-    fetch(`/api/followers?user_id=${userId}`)
-      .then((res) => res.json())
-      .then((data: IProfileBase[]) => {
-        setFollowers(data || []);
-        setFollowersCount(data.length || 0);
-      })
-      .catch(() => {
-        setFollowers([]);
-        setFollowersCount(0);
-      });
-
-    // Fetch following
-    fetch(`/api/followers?user_id=${userId}`)
-      .then((res) => res.json())
-      .then((data: IProfileBase[]) => {
-        setFollowing(data || []);
-        setFollowingCount(data.length || 0);
-      })
-      .catch(() => {
-        setFollowing([]);
-        setFollowingCount(0);
-      });
-  }, [userId]);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`/api/user?userId=${userId}`);
-        if (!res.ok) throw new Error("Failed to fetch user data");
-        const data: IProfileBase = await res.json();
+      if (res.ok && data) {
         setUserData(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+      } else {
+        setUserData(null);
       }
-    };
-    fetchUserData();
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+      setUserData(null);
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  fetchProfile();
+}, [userId]);
+
+// Fetch followers and following
+useEffect(() => {
+  if (!userId) return;
+
+  // Fetch posts
+  fetch(`/api/userPosts?user_id=${userId}`)
+    .then((res) => res.json())
+    .then((data) => {
+      setPosts(data || []);
+      setPostsCount(data.length || 0);
+    })
+    .catch(() => {
+      setPosts([]);
+      setPostsCount(0);
+    });
   }, [userId]);
+  
 
 const handleClick = async () => {
   if (!user?.id || !userId) return;
@@ -170,33 +153,7 @@ const handleSubmit = async () => {
 
 };
 
-
-    const handleFollow = async (targetUser: IProfileBase) => {
-  try {
-    const isFollowing = following.some(f => f.userId === targetUser.userId);
-
-    if (isFollowing) {
-      await fetch("/api/followers", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ followerUserId: user?.id, followingUserId: targetUser.userId }),
-      });
-      setFollowing(following.filter(f => f.userId !== targetUser.userId));
-    } else {
-      await fetch("/api/followers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ followerUserId: user?.id, followingUserId: targetUser.userId }),
-      });
-      setFollowing([...following, targetUser]);
-    }
-  } catch (err) {
-    console.error("Follow/unfollow error", err);
-  }
-};
-
-
-  if (loading) return <p className="max-w-3xl mx-auto flex min-h-screen justify-center items-center">Loading...</p>;
+  if (loadingData) return <p className="max-w-3xl mx-auto flex min-h-screen justify-center items-center">Loading...</p>;
   if (!userData) return <p className="max-w-3xl mx-auto flex min-h-screen">No user found</p>;
 
   const me = userId === user?.id;
@@ -236,7 +193,7 @@ const handleSubmit = async () => {
 
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Change Image</DialogTitle>
+                      <DialogTitle>Change Profile Image</DialogTitle>
                     </DialogHeader>
                     {/* Status Image Preview */}
                     {(preview || userData?.userImg) && (
@@ -262,7 +219,7 @@ const handleSubmit = async () => {
                      <button ref={closeRef} className="hidden" />
                       </DialogClose>
                         <Button
-                          disabled={loading}
+                          disabled={loadingProfile}
                           onClick={() => handleSubmit()}
                         >
                           {loadingProfile ? "Updating..." : "Update"}
@@ -277,8 +234,6 @@ const handleSubmit = async () => {
             </div>
           </div>         
         </div>
-
-
 
         {/* Buttons */}
         <div className="w-full space-x-4 flex">
@@ -305,15 +260,15 @@ const handleSubmit = async () => {
               </div>
             )}
           </div>
+          {me && (
           <div className='flex items-center gap-1 border-[1px] rounded-md px-2 cursor-pointer'>
-            {me && (
                 <div
                   onClick={() => { deletePostAction(String(userData._id))}}
                 >
                   <p className="text-red-600 cursor-pointer text-sm">Delete Account</p>
                 </div>
-              )} 
           </div>
+           )} 
         </div>
 
         {/* Tabs */}
@@ -357,7 +312,7 @@ const handleSubmit = async () => {
                               <img
                                 src={post.imageUrls[0]}
                                 alt="Post Image"
-                                className="w-full mx-auto"
+                                className="w-full mx-auto rounded-sm"
                               />
                               </Link>
                           ) : post.imageUrls && post.imageUrls.length > 1 ? (
@@ -367,7 +322,7 @@ const handleSubmit = async () => {
                                   key={idx}
                                   src={url}
                                   alt={`Post Image ${idx + 1}`}
-                                  className="w-full h-48 mx-auto object-cover"
+                                  className="w-full h-48 mx-auto object-cover rounded-sm"
                                 />
                               ))}
                             </Link>
@@ -377,52 +332,63 @@ const handleSubmit = async () => {
                               controls
                               muted
                               playsInline
-                              className="w-full h-60 mx-auto rounded-lg"
+                              className="w-full h-60 mx-auto rounded-sm"
                             />
                           ) : null}
                     </div>
             ))}
 
           {activeTab === "followers" &&
-            followers.map((follower, idx) => (
-              <div key={idx} className=" rounded-lg p-2 flex items-center gap-2">
-                <Image src={follower.userImg || "/logo/broadcast.jpg"} 
-                width={200} height={200} 
-                alt="user image"
-                className="w-10 h-10 rounded-full"/>
+  followers.map((follower: { userId: string; userImg?: string; firstName?: string; nickName?: string }, idx: number) => {
+    const isFollowingBack = following.some(
+      (f: { userId: string }) => f.userId === follower.userId
+    );
+    return (
+      <div key={idx} className="rounded-lg p-2 flex items-center gap-2">
+        <Image
+          src={follower.userImg || "/logo/broadcast.jpg"}
+          width={200}
+          height={200}
+          alt="user image"
+          className="w-10 h-10 rounded-full"
+        />
+        <p>{follower.firstName}</p>
+        <p>@{follower.nickName}</p>
+        <button
+          onClick={() => handleFollow(follower.userId)}
+          className="px-3 py-1 rounded-md border text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+        >
+          {loading ? "loading" : isFollowingBack ? "Unfollow" : "Follow"}
+        </button>
+      </div>
+    );
+  })}
+
+
+         {activeTab === "following" &&
+            following.map((follow: { userId: string; userImg?: string; firstName?: string; nickName?: string }) => (
+              <div key={follow.userId} className="rounded-lg p-2 flex items-center gap-2">
+                <Image
+                  src={follow.userImg || "/logo/broadcast.jpg"}
+                  width={200}
+                  height={200}
+                  alt="user image"
+                  className="w-10 h-10 rounded-full"
+                />
                 <p>
-                  {follower.firstName} 
+                  {follow.firstName} @{follow.nickName}
                 </p>
-                <p>
-                   @{follower.nickName}
-                </p>
-                 <button
-                  onClick={() => handleFollow(follower)}
+                <button
+                  onClick={() => handleFollow(follow.userId)}
                   className="px-3 py-1 rounded-md border text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
-                  {following.includes(follower) ? "Unfollow" : "Follow"}
+                  {following.some((f: any) => f.userId === follow.userId)
+                          ? "Unfollow"
+                          : "Follow"}
                 </button>
               </div>
             ))}
 
-          {activeTab === "following" &&
-            following.map((follow, idx) => (
-              <div key={idx} className=" rounded-lg p-2 flex items-center gap-2">
-                <Image src={follow.userImg || "/logo/broadcast.jpg"} 
-                width={200} height={200} 
-                alt="user image"
-                className="w-10 h-10 rounded-full"/>
-                <p>
-                  {follow.firstName} @{follow.nickName}
-                </p>
-                 <button
-                    onClick={() => handleFollow(follow)}
-                    className="px-3 py-1 rounded-md border text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
-                  >
-                    {following.includes(follow) ? "Unfollow" : "Follow"}
-                  </button>
-              </div>
-            ))}
         </div>
       </div>
     </div>
