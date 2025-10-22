@@ -6,23 +6,21 @@ import { ThemeToggle } from '@/components/themeToggle';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useCreateNewChat } from '@/hooks/useCreateNewChat';
+import { formatNumber } from '@/lib/formatnumber';
 import { IPostDocument } from '@/mongodb/models/post';
-import { IProfileBase } from '@/mongodb/models/profile';
 import { useUser } from '@clerk/nextjs';
 import { LayoutPanelLeft, MessageCircleMore, PencilLineIcon, Plus } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { use, useEffect, useRef, useState } from 'react';
+import { use, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import useSWR from 'swr';
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 function Page({ params }: { params: Promise<{ userId: string }> }) {
-  const [userData, setUserData] = useState<IProfileBase | null>(null);
-  const [loadingData, setLoadingData] = useState(true);
-  const [loadingProfile, setLoadingProfile] = useState(false);
-  const [posts, setPosts] = useState<IPostDocument[]>([]);
-  const [postsCount, setPostsCount] = useState<number>(0);
-  
+  const [loadingProfile, setLoadingProfile] = useState(false);  
   const [activeTab, setActiveTab] = useState<"posts" | "followers" | "following">("posts");
   const router = useRouter();
   const { user } = useUser();
@@ -32,49 +30,23 @@ function Page({ params }: { params: Promise<{ userId: string }> }) {
   const [File, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const { handleFollow, following, followers, followingCount, followersCount, loading  } = useFollowContext();
   
-   
-  useEffect(() => {
-  if (!userId) return;
+   // Fetch user profile data
+   const {
+    data: userData,
+    error: profileError,
+    isLoading: loadingData,
+  } = useSWR(userId ? `/api/user?userId=${userId}` : null, fetcher);
 
-  const fetchProfile = async () => {
-    try {
-      const res = await fetch(`/api/user?userId=${userId}`);
-      const data = await res.json();
-
-      if (res.ok && data) {
-        setUserData(data);
-      } else {
-        setUserData(null);
-      }
-    } catch (err) {
-      console.error("Error fetching profile:", err);
-      setUserData(null);
-    } finally {
-      setLoadingData(false);
-    }
-  };
-
-  fetchProfile();
-}, [userId]);
-
-// Fetch followers and following
-useEffect(() => {
-  if (!userId) return;
-
-  // Fetch posts
-  fetch(`/api/userPosts?user_id=${userId}`)
-    .then((res) => res.json())
-    .then((data) => {
-      setPosts(data || []);
-      setPostsCount(data.length || 0);
-    })
-    .catch(() => {
-      setPosts([]);
-      setPostsCount(0);
-    });
-  }, [userId]);
+// Fetch my posts
+  // ✅ Fetch user posts
+  const {
+    data: posts,
+    error: postsError,
+    isLoading: loadingPosts,
+  } = useSWR(userId ? `/api/userPosts?user_id=${userId}` : null, fetcher);
   
 
 const handleClick = async () => {
@@ -104,7 +76,7 @@ const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     }
   };
 
-const handleSubmit = async () => {
+const handleSubmit = async () => { 
   if (!File || !user?.id) return;
 
   try {
@@ -112,45 +84,40 @@ const handleSubmit = async () => {
 
     const formData = new FormData();
     formData.append("file", File);
-    formData.append("upload_preset", "broadcast"); // ⚠️ required
+    formData.append("upload_preset", "broadcast");
 
-    const res = await fetch(
-      "https://api.cloudinary.com/v1_1/dmzw85kqr/image/upload",
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+    const res = await fetch("https://api.cloudinary.com/v1_1/dmzw85kqr/image/upload", {
+      method: "POST",
+      body: formData,
+    });
 
     const data = await res.json();
-
-    if (!res.ok) {
-      console.error("Cloudinary error:", data);
-      throw new Error(data.error?.message || "Upload failed");
-    }
+    if (!res.ok) throw new Error(data.error?.message || "Upload failed");
 
     const imageUrl = data.secure_url;
-
-    setUserData((prev) => (prev ? { ...prev, userImg: imageUrl } : prev));
+    setProfileImage(imageUrl);
     setPreview(null);
     setFile(null);
 
-    // Optionally save to your DB
-    await fetch("/api/profile/update-image", {
+    const dbRes = await fetch("/api/myProfile", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId: user.id, userImg: imageUrl }),
     });
 
+    const dbData = await dbRes.json();
+    console.log("DB response:", dbData);
+
+    if (!dbRes.ok) throw new Error(dbData.error || "Failed to update DB");
+
+    toast.success("Profile image updated!");
   } catch (err) {
     console.error("Upload error:", err);
     toast.error("Failed to update image");
   } finally {
     setLoadingProfile(false);
-  }
     closeRef.current?.click();
-    toast.success("Profile image updated!");
-
+  }
 };
 
   if (loadingData) return <p className="max-w-3xl mx-auto flex min-h-screen justify-center items-center">Loading...</p>;
@@ -279,7 +246,7 @@ const handleSubmit = async () => {
             } p-2`}
             onClick={() => setActiveTab("posts")}
           >
-            {postsCount} Posts
+            {formatNumber(posts?.length)} Posts
           </div>
           <div
             className={`cursor-pointer border-2 border-x-0 border-t-0 ${
@@ -287,7 +254,7 @@ const handleSubmit = async () => {
             } p-2`}
             onClick={() => setActiveTab("followers")}
           >
-            {followersCount} Followers
+            {formatNumber(followersCount)} Followers
           </div>
           <div
             className={`cursor-pointer border-2 border-x-0 border-t-0 ${
@@ -295,37 +262,44 @@ const handleSubmit = async () => {
             } p-2`}
             onClick={() => setActiveTab("following")}
           >
-            {followingCount} Following
+            {formatNumber(followingCount)} Following
           </div>
         </div>
 
         {/* Content Area */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 w-full">
-          {activeTab === "posts" &&
-            posts.map((post) => (
-              <div key={String(post._id)}>
-                      <Link href={`fullMedia/${String(post._id)}`}>
-                      <p className="px-4 pb-2 mt-2">{post.cast}</p>
-                      </Link>
-                          {post.imageUrls && post.imageUrls.length > 0 ? (
-                            <Link href={`fullMedia/${String(post._id)}`}>
-                              <img
-                                src={Array.isArray(post.imageUrls) ? post.imageUrls[0] : post.imageUrls}
-                                alt="Post Image"
-                                className="w-full mx-auto rounded-sm"
-                              />
-                              </Link>                          
-                          ) : post.videoUrl ? (
-                            <video
-                              src={post.videoUrl || ""}
-                              controls
-                              muted
-                              playsInline
-                              className="w-full h-60 mx-auto rounded-sm"
-                            />
-                          ) : null}
-                    </div>
-            ))}
+          {activeTab === "posts" && (
+  <>
+    {loadingPosts && <p>Loading my posts...</p>}
+
+    {posts && posts.map((post: IPostDocument) => (
+      <div key={String(post._id)}>
+        <Link href={`fullMedia/${String(post._id)}`}>
+          <p className="px-4 pb-2 mt-2">{post.cast}</p>
+        </Link>
+
+        {post.imageUrls && post.imageUrls.length > 0 ? (
+          <Link href={`fullMedia/${String(post._id)}`}>
+            <img
+              src={Array.isArray(post.imageUrls) ? post.imageUrls[0] : post.imageUrls}
+              alt="Post Image"
+              className="w-full mx-auto rounded-sm"
+            />
+          </Link>
+        ) : post.videoUrl ? (
+          <video
+            src={post.videoUrl || ""}
+            controls
+            muted
+            playsInline
+            className="w-full h-60 mx-auto rounded-sm"
+          />
+        ) : null}
+      </div>
+    ))}
+  </>
+)}
+
 
           {activeTab === "followers" &&
   followers.map((follower: { userId: string; userImg?: string; firstName?: string; nickName?: string }, idx: number) => {

@@ -34,8 +34,6 @@ export default async function Home() {
 if (!safeUser) {
   redirect("/auth");
 }
-
-
   // ✅ Fetch all posts
   const posts = await Post.getAllPosts();
 

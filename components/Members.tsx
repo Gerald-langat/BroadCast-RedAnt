@@ -17,8 +17,8 @@ function Members({ users }: { users: IProfileBase[] }) {
   return (  
       <div className='flex flex-col space-y-1  mr-6 rounded-lg border p-4 mt-1'>
         <div className="flex justify-between items-center">
-           <p>members {formatNumber(users?.length)}</p>
-            <Link href="/members" className="text-xs cursor-pointer text-blue-500">View all members</Link> 
+           <p className="text-nowrap">members {formatNumber(users?.length)}</p>
+            <Link href="/members" className="text-xs cursor-pointer text-blue-500">View all</Link> 
         </div> 
       {users?.map(user => (
         <div className="flex justify-between items-center gap-2 " key={user._id}>
@@ -29,8 +29,8 @@ function Members({ users }: { users: IProfileBase[] }) {
               alt="user-image"
               className="w-8 h-8 rounded-full"
               /> 
-              <p className="text-sm min-w-13 max-w-13 truncate">{user.firstName}</p>
-              <p className="text-sm min-w-13 max-w-13 truncate">{user.nickName}</p>
+              <p className="text-sm max-w-13 truncate">{user.firstName}</p>
+              <p className="text-sm max-w-13 truncate">{user.nickName}</p>
           </Link>
           {author === user.userId ? (
              <p>{loading ? "loading..." : "You"}</p>
