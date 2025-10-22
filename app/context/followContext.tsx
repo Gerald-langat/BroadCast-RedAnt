@@ -1,76 +1,95 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext } from "react";
 import { useUser } from "@clerk/nextjs";
+import useSWR from "swr";
 
 const FollowCtx = createContext<any>(null);
 
 export const FollowProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useUser();
-  const [following, setFollowing] = useState<any[]>([]);
-  const [followers, setFollowers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [followersCount, setFollowersCount] = useState<number>(0);
-  const [followingCount, setFollowingCount] = useState<number>(0);
 
-  // Fetch followers and following once
-  useEffect(() => {
-    if (!user?.id) return;
+  // ✅ SWR fetcher
+  const fetcher = async (url: string) => {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Failed to fetch follow data");
+    return res.json();
+  };
 
-    const fetchFollowData = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`/api/followers?userId=${user.id}`);
-        const data = await res.json();
+  // ✅ Load followers/following with SWR (auto caching & revalidation)
+  const {
+    data,
+    error,
+    mutate,
+    isLoading,
+  } = useSWR(user?.id ? `/api/followers?userId=${user.id}` : null, fetcher);
 
-        setFollowers(data.followers || []); 
-        setFollowersCount(data.followers?.length || 0); 
-        setFollowing(data.following || []); 
-        setFollowingCount(data.following?.length || 0);
-      } catch (err) {
-        console.error("Error fetching follow data:", err);
-        setFollowers([]);
-        setFollowing([]);
-        setFollowersCount(0);
-        setFollowingCount(0);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const followers = data?.followers || [];
+  const following = data?.following || [];
+  const followersCount = followers.length;
+  const followingCount = following.length;
 
-    fetchFollowData();
-  }, [user?.id]);
-
-  // Follow/Unfollow logic
+  // ✅ Follow / Unfollow logic (with optimistic UI update)
   const handleFollow = async (targetUserId: string) => {
     if (!user?.id) return;
 
-    const isFollowing = following.some((f) => f.userId === targetUserId);
+    const isFollowing = following.some((f: any) => f.userId === targetUserId);
     const method = isFollowing ? "DELETE" : "POST";
 
-    try {
-      await fetch("/api/followers", {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          followerUserId: user.id,
-          followingUserId: targetUserId,
-        }),
-      });
+    // --- optimistic update ---
+    mutate(
+      async (currentData: any) => {
+        let updatedFollowing;
+        if (isFollowing) {
+          updatedFollowing = currentData.following.filter(
+            (f: any) => f.userId !== targetUserId
+          );
+        } else {
+          updatedFollowing = [
+            ...currentData.following,
+            { userId: targetUserId },
+          ];
+        }
 
-      // Update state instantly (optimistic update)
-      setFollowing((prev) =>
-        isFollowing
-          ? prev.filter((f) => f.userId !== targetUserId)
-          : [...prev, { userId: targetUserId }]
-      );
-    } catch (err) {
-      console.error("Error updating follow:", err);
-    }
+        // Fire the actual request
+        await fetch("/api/followers", {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            followerUserId: user.id,
+            followingUserId: targetUserId,
+          }),
+        });
+
+        // Return the updated data for SWR cache
+        return { ...currentData, following: updatedFollowing };
+      },
+      {
+        optimisticData: {
+          ...data,
+          following: isFollowing
+            ? following.filter((f: any) => f.userId !== targetUserId)
+            : [...following, { userId: targetUserId }],
+        },
+        rollbackOnError: true, // Revert on failure
+        revalidate: true, // Auto re-fetch after success
+      }
+    );
   };
 
   return (
-    <FollowCtx.Provider value={{ following, followers, handleFollow, followersCount, followingCount, loading }}>
+    <FollowCtx.Provider
+      value={{
+        following,
+        followers,
+        followersCount,
+        followingCount,
+        handleFollow,
+        loading: isLoading,
+        error,
+        mutate, // in case other components need to manually refresh
+      }}
+    >
       {children}
     </FollowCtx.Provider>
   );
