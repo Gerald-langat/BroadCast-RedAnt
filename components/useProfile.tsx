@@ -1,32 +1,24 @@
 "use client";
-import {  IProfileBase } from "@/mongodb/models/profile";
-import { useEffect, useState } from "react";
 
+import useSWR from "swr";
+import { IProfileBase } from "@/mongodb/models/profile";
 
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch profile");
+  return res.json();
+};
 
 export function useProfile() {
-  const [profile, setProfile] = useState<IProfileBase | null>(null);
-  const [loadingProfile, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, error, isLoading, mutate } = useSWR<IProfileBase>("/api/profile", fetcher, {
+    revalidateOnFocus: false, // Optional: don't refetch every time the tab focuses
+    dedupingInterval: 60000,  // Optional: cache for 1 min
+  });
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch("/api/profile");
-        if (!res.ok) throw new Error("Failed to fetch profile");
-        const data = await res.json();
-        setProfile(data);
-      } catch (err: any) {
-        console.error("Profile fetch error:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, []);
-
-  return { profile, loadingProfile, error };
+  return {
+    profile: data || null,
+    loadingProfile: isLoading,
+    error: error ? error.message : null,
+    mutate, // optional: allows manual refetch after update
+  };
 }
