@@ -24,6 +24,7 @@ async function UserInformation({ posts }: { posts: IPostDocument[] }) {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex flex-col justify-center items-center  mr-6 rounded-lg border py-4">
+        <Link href={`/profile/${user?.id}`} className="flex flex-col items-center gap-2">      
           <Avatar className="h-16 w-16 mb-5">
           {user?.id ? (
             <AvatarImage src={userDB?.userImg} />
@@ -46,6 +47,7 @@ async function UserInformation({ posts }: { posts: IPostDocument[] }) {
             </p>
 
           </div>
+      </Link>
         <hr className="w-full  my-5" />
 
         <div className="flex justify-between w-full px-4 text-sm">

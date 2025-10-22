@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ImageIcon, Plus, SmilePlus } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect, useRef, useState } from "react";
+import useSWR from "swr";
 import {
   Dialog,
   DialogClose,
@@ -21,9 +22,10 @@ import EmojiPicker from "emoji-picker-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import Link from "next/link";
 import { submitStatusAction } from "@/app/actions/submitStatusAction";
+import { IPostBase } from "@/mongodb/models/statusPost";
 
 
-function PostForm({ user }: { user: IProfileBase }) {
+ function PostForm({ user }: { user: IProfileBase }) {
   const [files, setFiles] = useState<File[]>([]);
   const [preview, setPreview] = useState<string[]>([]);
   const [statusPreview, setStatusPreview] = useState<string[]>([]);
@@ -35,39 +37,22 @@ function PostForm({ user }: { user: IProfileBase }) {
   const { scopeCode, scope } = useScope();
   const [sFiles, setSFiles] = useState<File[]>([]);
   const [statusText, setStatusText] = useState("");
-  const [status, setStatus] = useState<any[]>([]);
   const [showPicker, setShowPicker] = useState(false);
    const closeRef = useRef<HTMLButtonElement>(null);
 
 
-const fetchStatus = async () => {
-  try {
-    setLoadingStatus(true);
-    const res = await fetch("/api/statusPosts");
-    if (!res.ok) throw new Error("Failed to fetch status");
-
-    const data = await res.json();
-
-    setStatus((prevStatus) => {
-      const combined = [...prevStatus, ...data];
-      const unique = combined.filter(
-        (post, index, self) =>
-          index === self.findIndex(
-            (p) => p.user.userId === post.user.userId
-          )
-      );
-      return unique;
-    });
-  } catch (err) {
-    console.error("Error fetching status:", err);
-  } finally {
-    setLoadingStatus(false);
-  }
-};
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const { data: status = [], isLoading, mutate } = useSWR<IPostBase[]>("/api/statusPosts", fetcher);
 
 useEffect(() => {
-  fetchStatus();
-}, []);
+  if (mutate) mutate();
+}, [mutate]);
+
+// ✅ Remove duplicate users (keep the latest one)
+const uniqueStatus = (status as IPostBase[]).filter(
+  (post, index, self) =>
+    index === self.findIndex((p) => p.user.userId === post.user.userId)
+);
 
   // handle multiple files
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,7 +152,7 @@ const handleSubmitStatus = async (
   onSuccess?: (newCast: any) => void
 ) => {
   try {
-     setLoadingCast(true);
+     setLoadingStatus(true);
 
     const castText =  statusText;
     if (!castText.trim()) {
@@ -202,6 +187,9 @@ const handleSubmitStatus = async (
     onSuccess?.(newCast);
     toast.success("Posted successfully");
 
+    // Refresh status list
+    if (mutate) await mutate();
+
     // Reset
     ref.current?.reset();
     setSFiles([]);
@@ -211,7 +199,7 @@ const handleSubmitStatus = async (
     console.error("Failed to submit cast:", err);
     toast.error("Failed to submit cast");
   } finally {
-   setLoadingCast(false);
+   setLoadingStatus(false);
   }
     closeRef.current?.click();
 };
@@ -324,32 +312,34 @@ const handleSubmitStatus = async (
 </Dialog>
 
 <div className="flex space-x-2 max-w-full overflow-x-auto scrollbar-hide">
-  {status.map((s, idx) => (
-    <Link
+  {isLoading && <p>Loading statuses...</p>}
+{uniqueStatus.map((s: any, idx: any) => (
+  <Link
     href={`status/${s.user.userId}`}
-      key={idx}
-      className="flex items-center justify-center rounded-full p-1 border-2 w-12 h-12 shrink-0 cursor-pointer"
-    >
-      {s.imageUrls > 0 ? (
-        <Image
-          src={s.imageUrls[0] || "/logo/broadcast.jpg"}
-          width={48}
-          height={48}
-          alt="status-image"
-          className="rounded-full object-cover w-10 h-9"
-        />
-      ) : s.videoUrl ? (
-        <video
-          src={s.videoUrl || "/logo/broadcast.jpg"}
-          width={48}
-          height={48}
-          className="rounded-full object-cover w-10 h-9"
-        />
-      ) :(
-        <p className="text-[10px] text-center">{s.cast}</p>
-      )}
-    </Link>
-  ))}
+    key={idx}
+    className="flex items-center justify-center rounded-full p-1 border-2 w-12 h-12 shrink-0 cursor-pointer"
+  >
+    {s.imageUrls && s.imageUrls.length > 0 ? (
+      <Image
+        src={s.imageUrls[0] || "/logo/broadcast.jpg"}
+        width={48}
+        height={48}
+        alt="status-image"
+        className="rounded-full object-cover w-10 h-9"
+      />
+    ) : s.videoUrl ? (
+      <video
+        src={s.videoUrl || "/logo/broadcast.jpg"}
+        width={48}
+        height={48}
+        className="rounded-full object-cover w-10 h-9"
+      />
+    ) : (
+      <p className="text-[10px] text-center">{s.cast}</p>
+    )}
+  </Link>
+))}
+
 </div>
       </div>
         <div className="border-[1px] p-2 rounded-md">

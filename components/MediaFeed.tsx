@@ -19,31 +19,28 @@ if(posts.length === 0) {
       <div key={String(post._id)} className="flex flex-col">
         <Link href={`fullMedia/${String(post._id)}`} className="block">
           {/* Single Image */}
-          {post.imageUrls && post.imageUrls.length === 1 ? (
-            <img
-              src={post.imageUrls[0]}
-              alt="Post Image"
-              className="w-full h-48 object-cover rounded-lg" // ✅ same height for all
-            />
-          ) : post.imageUrls && post.imageUrls.length > 1 ? (
-            <div className="grid grid-cols-2 gap-1 w-full h-48"> 
-              {post.imageUrls.slice(0, 4).map((url: string, idx: number) => (
-                <img
-                  key={idx}
-                  src={url}
-                  alt={`Post Image ${idx + 1}`}
-                  className="w-full h-24 object-cover rounded-lg"
-                />
-              ))}
+          {post.imageUrls && post.imageUrls.length > 0 ? (
+            <div className="relative">
+              <img
+                src={post.imageUrls[0]}
+                alt="Post Image"
+                className="w-full h-48 object-cover rounded-lg"
+              />
+              {post.imageUrls.length > 1 && (
+                <span className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                  +{post.imageUrls.length - 1}
+                </span>
+              )}
             </div>
           ) : post.videoUrl ? (
             <video
               src={post.videoUrl}
               muted
               playsInline
-              className="w-full h-48 object-cover rounded-lg" // ✅ same height as images
+              className="w-full h-48 object-cover rounded-lg"
             />
           ) : null}
+
         </Link>
 
         {/* User info */}

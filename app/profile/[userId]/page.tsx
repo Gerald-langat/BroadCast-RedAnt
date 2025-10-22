@@ -307,25 +307,14 @@ const handleSubmit = async () => {
                       <Link href={`fullMedia/${String(post._id)}`}>
                       <p className="px-4 pb-2 mt-2">{post.cast}</p>
                       </Link>
-                          {post.imageUrls && post.imageUrls.length === 1 ? (
+                          {post.imageUrls && post.imageUrls.length > 0 ? (
                             <Link href={`fullMedia/${String(post._id)}`}>
                               <img
-                                src={post.imageUrls[0]}
+                                src={Array.isArray(post.imageUrls) ? post.imageUrls[0] : post.imageUrls}
                                 alt="Post Image"
                                 className="w-full mx-auto rounded-sm"
                               />
-                              </Link>
-                          ) : post.imageUrls && post.imageUrls.length > 1 ? (
-                            <Link href={`fullMedia/${String(post._id)}`} className="grid grid-cols-2  gap-1">
-                              {post.imageUrls.map((url: string, idx: number) => (
-                                <img
-                                  key={idx}
-                                  src={url}
-                                  alt={`Post Image ${idx + 1}`}
-                                  className="w-full h-48 mx-auto object-cover rounded-sm"
-                                />
-                              ))}
-                            </Link>
+                              </Link>                          
                           ) : post.videoUrl ? (
                             <video
                               src={post.videoUrl || ""}

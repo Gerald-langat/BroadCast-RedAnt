@@ -1,7 +1,6 @@
 "use client"
 import { useScope } from "@/app/context/ScopeContext";
-import { IProfile, IProfileBase } from "@/mongodb/models/profile";
-import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import {  IProfileBase } from "@/mongodb/models/profile";
 import {
   Briefcase,
   Flag,
@@ -19,14 +18,13 @@ import { useEffect, useState } from "react";
 import { useProfile } from "./useProfile";
 
  function Header() {
-const [query, setQuery] = useState("");
-  const [results, setResults] = useState<IProfile[]>([]);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<IProfileBase[]>([]);
   const [loading, setLoading] = useState(false);
-    const { profile, loadingProfile, error } = useProfile();
+  const { profile, loadingProfile, error } = useProfile();
 
   // 🔹 Use global scope from context
   const { scope,  setScopeCode, setScope } = useScope();
-
 
 
     useEffect(() => {

@@ -135,6 +135,12 @@ const handleStartChat = async (targetUserId: string) => {
       </p>
     );
 
+    // if (posts.length === 0) return (
+    //   <p className="w-full flex justify-center items-center min-h-screen">
+    //     no products found
+    //   </p>
+    // )
+
   return (
     <div>
       <div className="flex justify-between items-center max-w-6xl mx-auto py-4 px-2">
@@ -227,8 +233,13 @@ const handleStartChat = async (targetUserId: string) => {
           </DialogContent>
         </Dialog>
       </div>
+       {posts.length === 0 && (
+          <p className="w-full flex justify-center items-center min-h-screen">
+            no products found
+          </p>
+        )}
       {/* ✅ Product Grid */}
-      <div className="max-w-6xl mx-auto py-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="max-w-6xl mx-auto py-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">       
         {posts.map((post) => (
           <div key={String(post._id)} className="card bg-base-100 shadow-sm border-[1px] rounded-md">
             <figure className="h-40">
