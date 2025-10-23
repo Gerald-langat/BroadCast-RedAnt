@@ -46,7 +46,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
-    if (post.user.userId !== userId) {
+    if (post.userId !== userId) {
       throw new Error("Post does not belong to the user");
     }
 

@@ -54,7 +54,6 @@ const PostSchema = new Schema<IPostDocument>(
 
 PostSchema.methods.removePost = async function () {
   try {
-    console.log("Soft deleting post:", this._id);
     await this.updateOne({
   $set: { isArchived: true, archivedAt: new Date() },
 });
