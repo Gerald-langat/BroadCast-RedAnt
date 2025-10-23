@@ -20,7 +20,6 @@ export interface IProfileBase {
 }
 
 export interface IProfileMethods {
-  updateImage(userImg: string): Promise<void>;
   removeProfile(): Promise<void>;
 }
 
@@ -60,14 +59,6 @@ ProfileSchema.methods.removeProfile = async function () {
   }
 };
 
-ProfileSchema.methods.updateImage = async function (userImg: string) {
-  try {
-    this.userImg = userImg;
-    await this.save();
-  } catch (error) {
-    console.error("Error when updating image:", error);
-  }
-};
 
 // 🧩 Static method (typed)
 ProfileSchema.statics.getProfile = async function (userId: string) {

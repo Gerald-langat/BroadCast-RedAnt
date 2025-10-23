@@ -27,13 +27,13 @@ function CommentFeed({ postId }: { postId: string }) {
 
   const author = comments.find((comment: IComment) => comment.user?.userId === user?.id);
 
-  if (isLoading) return <p className="animate-pulse">Loading comments...</p>;
+  if (isLoading) return <p className="animate-pulse px-3">Loading comments...</p>;
   if (error) return <p>Error loading comments</p>;
 
   return (
     <div className="mt-3 space-y-2 w-full">
       {comments.length === 0 ? (
-        <p className="text-sm text-gray-500">No comments yet.</p>
+        <p className="text-sm text-gray-500 px-3">No comments yet.</p>
       ) : (
         comments.map((comment: IComment) => (
           <div key={String(comment._id)} className="flex space-x-2 w-full">

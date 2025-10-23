@@ -22,6 +22,7 @@ export interface IPostBase {
   videoUrl: string | null;
   isArchived?: boolean;
   archivedAt?: Date | null; // ✅ added
+  viewCount: number;
 }
 
 export interface IPost extends IPostBase, Document {
@@ -65,7 +66,7 @@ const PostSchema = new Schema<IPostDocument>(
 
     comments: { type: [Schema.Types.ObjectId], ref: "Comment", default: [] },
     likes: { type: [String] },
-    
+    viewCount: { type: Number, default: 0 },
     recastedBy: {
     type: [String], // store user IDs as plain strings
     default: [],
@@ -96,7 +97,7 @@ const PostSchema = new Schema<IPostDocument>(
 
 PostSchema.methods.likePost = async function (userId: string) {
   try {
-    await this.updateOne({ $addToSet: { likes: userId } });
+    await this.updateOne({ $addToSet: { likes: userId }, $inc: { viewCount: 1 },  });
   } catch (error) {
     console.log("error when liking post", error);
   }
@@ -104,7 +105,7 @@ PostSchema.methods.likePost = async function (userId: string) {
 
 PostSchema.methods.unlikePost = async function (userId: string) {
   try {
-    await this.updateOne({ $pull: { likes: userId } });
+    await this.updateOne({ $pull: { likes: userId }, $inc: { viewCount: -1 } });
   } catch (error) {
     console.log("error when unliking post", error);
   }
