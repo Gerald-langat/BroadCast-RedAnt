@@ -15,6 +15,7 @@ import CommentFeed from "./CommentFeed";
 import { IPostDocument } from "@/mongodb/models/post";
 import Link from "next/link";
 import followContext from "@/app/context/followContext";
+import { mutate } from "swr";
 
 
 function PostOptions({
@@ -31,7 +32,7 @@ function PostOptions({
   // Like state
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(post.likes ?? []);
-  const [viewCount, setViewCount] = useState<number | null>(null);
+  const [viewCount, setViewCount] = useState<number>(post.viewCount ?? 0);
   // Recast state
   const [recasted, setRecasted] = useState(false);
   const [recastedBy, setRecastedBy] = useState(post.recastedBy ?? []);
@@ -118,7 +119,7 @@ function PostOptions({
       );
     }
 
-    setViewCount((prev) => (prev ?? post.viewCount ?? 0) + 1);
+    setViewCount((prev) => prev + 1);
     setRecasted(newRecasted);
     setRecastedBy(updatedRecastedBy);
     setRecastDetails(updatedRecastDetails);
@@ -153,7 +154,7 @@ function PostOptions({
         url: `https://broadcastke.com/fullMedia/${postId}`,
       });
 
-      setViewCount((prev) => (prev ?? post.viewCount ?? 0) + 1);
+      setViewCount((prev) => prev + 1);
       // Increment viewCount after sharing
       await fetch(`/api/posts/${postId}/view`, {
         method: "POST",
@@ -164,6 +165,23 @@ function PostOptions({
     }
   } else {
     alert('Web Share API is not supported in your browser.');
+  }
+};
+
+const handleOpenComments = async () => {
+  // open/close comments instantly
+  setIsCommentsOpen((prev) => !prev);
+  // show updated view count instantly
+  setViewCount((prev) => prev + 1);
+
+  try {
+    // increment in backend
+    await fetch(`/api/posts/${postId}/view`, { method: "POST" });
+
+    // refresh your feed instantly if you use SWR
+    mutate("/api/posts");
+  } catch (error) {
+    console.error("Failed to increment view count:", error);
   }
 };
 
@@ -247,7 +265,7 @@ function PostOptions({
         {/* Comments count */}
         <div>
           {post?.comments && post.comments.length > 0 && 
-          ( <p onClick={() => setIsCommentsOpen(!isCommentsOpen)} 
+          ( <p onClick={handleOpenComments} 
           className="text-xs text-gray-500 cursor-pointer hover:underline" > 
           {post.comments.length} comments </p> 
         )}
@@ -286,7 +304,7 @@ function PostOptions({
 
         <Button variant="ghost" className="postButton">
           <EyeIcon  className="mr-1" size={16} />
-          {formatNumber(viewCount || post?.viewCount || 0)}
+          {formatNumber(viewCount || 0)}
           Views
         </Button>
 
