@@ -1,3 +1,4 @@
+// api/news/route.ts
 import connectDB from "@/mongodb/db";
 import { Post } from "@/mongodb/models/post";
 import { NextResponse } from "next/server";
@@ -6,7 +7,7 @@ export async function GET() {
   try {
     await connectDB();
 
-    // ✅ Exclude posts where category === "Personal Account"
+    // Exclude "Personal Account" posts
     const posts = await Post.find({
       category: { $ne: "Personal Account" },
       $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
@@ -15,9 +16,18 @@ export async function GET() {
       .populate({
         path: "comments",
         options: { sort: { createdAt: -1 } },
-      });
+      })
+      .lean(); // makes plain JS objects
 
-    return NextResponse.json(JSON.parse(JSON.stringify(posts)));
+    // Serialize properly for Next.js
+    const serializedPosts = posts.map((post) => ({
+      ...post,
+      _id: post._id.toString(),
+      createdAt: post.createdAt?.toString(),
+      updatedAt: post.updatedAt?.toString(),
+    }));
+
+    return NextResponse.json(serializedPosts);
   } catch (error) {
     console.error("Error fetching posts:", error);
     return NextResponse.json(

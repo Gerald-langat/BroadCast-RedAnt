@@ -5,7 +5,7 @@ import Widget from "@/components/Widget";
 import { Post } from "@/mongodb/models/post";
 import { SignedIn } from "@clerk/nextjs";
 import connectDB from "@/mongodb/db";
-import {  IProfileBase, Profile } from "@/mongodb/models/profile";
+import { Profile } from "@/mongodb/models/profile";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Members from "@/components/Members";
