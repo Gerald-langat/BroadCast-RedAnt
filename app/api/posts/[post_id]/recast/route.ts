@@ -36,8 +36,8 @@ export async function POST(
     });
   }
 
+  await post.updateOne({ $inc: { viewCount: 1 } }); // Increment viewCount on recast
   await post.save();
-  await post.updateEngagementCount();
 
   return NextResponse.json({
     message: "Recast updated",

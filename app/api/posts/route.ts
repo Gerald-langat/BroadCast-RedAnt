@@ -30,6 +30,7 @@ export async function POST(
   } else {
     post.recastedBy.push(userId);
   }
+  await post.updateOne({ inc: { viewCount: 1 } }); // Increment viewCount on recast
 
   await post.save();
 

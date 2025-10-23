@@ -16,6 +16,7 @@ import { IPostDocument } from "@/mongodb/models/post";
 import Link from "next/link";
 import followContext from "@/app/context/followContext";
 
+
 function PostOptions({
   postId,
   post,
@@ -30,7 +31,7 @@ function PostOptions({
   // Like state
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(post.likes ?? []);
-
+  const [viewCount, setViewCount] = useState<number | null>(null);
   // Recast state
   const [recasted, setRecasted] = useState(false);
   const [recastedBy, setRecastedBy] = useState(post.recastedBy ?? []);
@@ -69,6 +70,7 @@ function PostOptions({
 
     setLiked(newLiked);
     setLikes(newLikes);
+      setViewCount((prev) => (prev ?? post.viewCount ?? 0) + 1);
 
     const endpoint = `/api/posts/${postId}/${newLiked ? "like" : "unlike"}`;
     const response = await fetch(endpoint, {
@@ -116,6 +118,7 @@ function PostOptions({
       );
     }
 
+    setViewCount((prev) => (prev ?? post.viewCount ?? 0) + 1);
     setRecasted(newRecasted);
     setRecastedBy(updatedRecastedBy);
     setRecastDetails(updatedRecastDetails);
@@ -149,6 +152,13 @@ function PostOptions({
         text: `${post?.user?.firstName}`,
         url: `https://broadcastke.com/fullMedia/${postId}`,
       });
+
+      setViewCount((prev) => (prev ?? post.viewCount ?? 0) + 1);
+      // Increment viewCount after sharing
+      await fetch(`/api/posts/${postId}/view`, {
+        method: "POST",
+      });
+
     } catch (error) {
       console.error('Error sharing content:', error);
     }
@@ -276,7 +286,7 @@ function PostOptions({
 
         <Button variant="ghost" className="postButton">
           <EyeIcon  className="mr-1" size={16} />
-          {/* {formatNumber({post?.engagement?.total ?? 0})} */}
+          {formatNumber(viewCount || post?.viewCount || 0)}
           Views
         </Button>
 

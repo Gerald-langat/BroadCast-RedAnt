@@ -32,10 +32,12 @@ export const submitCastAction = async (
       nickName: userDB.nickName,
       userImg: userDB.userImg || "", // must match schema
     };
+    const category = userDB.category || "general";
 
     // Create the post directly
     const postCreated = await Post.create({
       user: userForPost,
+      category: category,
       cast,
       imageUrls: imageUrls && imageUrls.length > 0 ? imageUrls : [], // array
       videoUrl: videoUrl || null,

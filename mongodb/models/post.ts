@@ -8,6 +8,7 @@ export interface IPostBase {
   cast: string;
   scope: string;
   scopeCode: number;
+  category: string;
   imageUrls: string[] | [];
   comments?: IComment[];
   likes?: string[];
@@ -62,7 +63,8 @@ const PostSchema = new Schema<IPostDocument>(
     scopeCode: { type: Number, required: true, default: 0 }, // 1-Public, 2-Connections, 3-Only Me
 
       imageUrls: { type: [String], default: [] },
-    videoUrl: { type: String, default: null },  
+    videoUrl: { type: String, default: null },
+    category: { type: String, required: true, default: "general" },  
 
     comments: { type: [Schema.Types.ObjectId], ref: "Comment", default: [] },
     likes: { type: [String] },
@@ -105,7 +107,7 @@ PostSchema.methods.likePost = async function (userId: string) {
 
 PostSchema.methods.unlikePost = async function (userId: string) {
   try {
-    await this.updateOne({ $pull: { likes: userId }, $inc: { viewCount: -1 } });
+    await this.updateOne({ $pull: { likes: userId } });
   } catch (error) {
     console.log("error when unliking post", error);
   }
@@ -125,13 +127,20 @@ PostSchema.methods.removePost = async function () {
 
 PostSchema.methods.commentOnPost = async function (commentToAdd: ICommentBase) {
   try {
+    // Create the comment
     const comment = await Comment.create(commentToAdd);
-    this.comments.push(comment._id);
-    await this.save();
+
+    // Increment viewCount and push comment ID atomically
+    await this.updateOne({
+      $push: { comments: comment._id },
+      $inc: { viewCount: 1 },
+    });
+
   } catch (error) {
     console.log("error when commenting on post", error);
   }
 };
+
 
 PostSchema.statics.getAllPosts = async function () {
   try {
@@ -149,6 +158,7 @@ PostSchema.statics.getAllPosts = async function () {
     const serializedPosts = posts.map((post: any) => ({
       ...post,
       _id: post._id.toString(),
+        viewCount: post.viewCount ?? 0,
       comments:
         post.comments?.map((comment: any) => ({
           ...comment,
