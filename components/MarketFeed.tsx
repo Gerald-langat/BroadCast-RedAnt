@@ -32,7 +32,9 @@ export default function MarketFeed({ posts }: { posts: IPostDocument[] }) {
   const ref = useRef<HTMLFormElement>(null);
   const { client, setActiveChannel } = useChatContext();
   const router = useRouter();
-  const {user} = useUser()
+  const {user} = useUser();
+   const closeRef = useRef<HTMLButtonElement>(null);
+  
 
 const handleStartChat = async (targetUserId: string) => {
   // Make sure the chat client and user are loaded
@@ -127,19 +129,7 @@ const handleStartChat = async (targetUserId: string) => {
 };
 
 
-
-  if (loadingStatus)
-    return (
-      <p className="w-full flex justify-center items-center min-h-screen">
-        <span className="loading loading-bars loading-md"></span>
-      </p>
-    );
-
-    // if (posts.length === 0) return (
-    //   <p className="w-full flex justify-center items-center min-h-screen">
-    //     no products found
-    //   </p>
-    // )
+  
 
   return (
     <div>
@@ -223,6 +213,10 @@ const handleStartChat = async (targetUserId: string) => {
               <DialogClose asChild>
                 <Button variant="outline">Cancel</Button>
               </DialogClose>
+              <DialogClose asChild>
+                          {/* Hidden close button used for programmatic close */}
+                          <button ref={closeRef} className="hidden" />
+                        </DialogClose>
               <Button
                 disabled={loadingStatus}
                 onClick={() => handleSubmit(submitCastAction)}

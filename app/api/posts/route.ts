@@ -1,6 +1,6 @@
 // api/posts/route.ts
 import connectDB from "@/mongodb/db";
-import { IPostBase, Post } from "@/mongodb/models/post";
+import { Post } from "@/mongodb/models/post";
 import { IProfileBase } from "@/mongodb/models/profile";
 import { NextResponse } from "next/server";
 
