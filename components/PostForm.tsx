@@ -207,7 +207,7 @@ const handleSubmitStatus = async (
 
 
   return (
-    <div className="">
+    <div>
       <div className="flex items-center space-x-2 border-[1px] p-2 rounded-b-md">        
  <Dialog>
   <DialogTrigger asChild>

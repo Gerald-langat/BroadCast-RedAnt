@@ -1,54 +1,48 @@
-import { currentUser } from "@clerk/nextjs/server";
+"use client";
+
+import { useUser } from "@clerk/nextjs";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { IPostDocument } from "@/mongodb/models/post";
-import { Profile } from "@/mongodb/models/profile";
-import Link from "next/link";
-import { Building2Icon, HomeIcon, MessageSquareMoreIcon, NewspaperIcon, PauseCircleIcon } from "lucide-react";
 import { formatNumber } from "@/lib/formatnumber";
+import Link from "next/link";
+import {
+  Building2Icon,
+  HomeIcon,
+  MessageSquareMoreIcon,
+  NewspaperIcon,
+  PauseCircleIcon,
+} from "lucide-react";
+import { useProfile } from "./useProfile";
 
-async function UserInformation({ posts }: { posts: IPostDocument[] }) {
-  const user = await currentUser();
+export default function UserInformation({ posts }: { posts: any[] }) {
+    const { profile, loadingProfile, error } = useProfile();
 
-  const userPosts = posts?.filter((post) => post.user.userId === user?.id);
 
-  //  The flatMap() method creates a new array by calling a function for each element in the array and then flattening the result into a new array. It is identical to a map() followed by a flat() of depth 1, but flatMap() is often quite useful, as merging both into one method is slightly more efficient. The result of this flatMap() is a new array that contains all comments made by the current user across all posts. It's "flat" because it's a single-level array, not an array of arrays.
+  const userPosts = posts?.filter((post) => post.user.userId === profile?.userId);
   const userComments = posts?.flatMap(
-    (post) =>
-      post?.comments?.filter((comment) => comment.user.userId === user?.id) ||
-      []
+    (post) => post?.comments?.filter((c: any) => c.user.userId === profile?.userId) || []
   );
-
-        const userDB = await Profile.getProfile(String(user?.id));
-     
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex flex-col justify-center items-center  mr-6 rounded-lg border py-4">
-        <Link href={`/profile/${user?.id}`} className="flex flex-col items-center gap-2">      
+      <div className="flex flex-col justify-center items-center mr-6 rounded-lg border w-full py-4">
+        <Link href={`/profile/${profile?.userId}`} className="flex flex-col items-center gap-2">
           <Avatar className="h-16 w-16 mb-5">
-          {user?.id ? (
-            <AvatarImage src={userDB?.userImg} />
-          ) : (
-            <AvatarImage src={userDB?.firstName} />
-          )}
-          <AvatarFallback>
-            {userDB?.firstName?.charAt(0)}
-            {userDB?.lastName?.charAt(0)}
-          </AvatarFallback>
-        </Avatar>
+            <AvatarImage src={profile?.userImg || ""} />
+            <AvatarFallback>
+              {profile?.firstName?.[0]}
+              {profile?.lastName?.[0]}
+            </AvatarFallback>
+          </Avatar>
 
           <div className="text-center">
             <p className="font-semibold text-sm">
-              {userDB?.firstName} {userDB?.lastName}
+              {profile?.firstName} {profile?.lastName}
             </p>
-
-            <p className="text-xs">
-              @{userDB?.nickName}
-            </p>
-
+            <p className="text-xs">@{profile?.nickName}</p>
           </div>
-      </Link>
-        <hr className="w-full  my-5" />
+        </Link>
+
+        <hr className="w-full my-5" />
 
         <div className="flex justify-between w-full px-4 text-sm">
           <p className="font-semibold text-gray-400">Posts</p>
@@ -60,20 +54,24 @@ async function UserInformation({ posts }: { posts: IPostDocument[] }) {
           <p className="text-blue-400">{formatNumber(userComments?.length)}</p>
         </div>
       </div>
-      <div className='flex flex-col space-y-1  mr-6 rounded-lg border p-4 mt-1'>
-          <Link href="/" className='flex gap-2 items-center'><HomeIcon size={18} />
-          Home</Link>
-          <Link href="/media" className='flex gap-2 items-center'><PauseCircleIcon size={18} />
-          Media</Link>
-          <Link href="/news" className='flex gap-2 items-center'><NewspaperIcon size={18} />
-          News</Link>
-          <Link href="/marketPlace" className='flex gap-2 items-center'><Building2Icon size={18} />
-          MarketPlace</Link>
-          <Link href="/dashboard" className='flex gap-2 items-center'><MessageSquareMoreIcon size={18} />
-          Messages</Link>
+
+      <div className="flex flex-col space-y-1 mr-6 rounded-lg border w-full p-4 mt-1">
+        <Link href="/" className="flex gap-2 items-center">
+          <HomeIcon size={18} /> Home
+        </Link>
+        <Link href="/media" className="flex gap-2 items-center">
+          <PauseCircleIcon size={18} /> Media
+        </Link>
+        <Link href="/news" className="flex gap-2 items-center">
+          <NewspaperIcon size={18} /> News
+        </Link>
+        <Link href="/marketPlace" className="flex gap-2 items-center">
+          <Building2Icon size={18} /> MarketPlace
+        </Link>
+        <Link href="/dashboard" className="flex gap-2 items-center">
+          <MessageSquareMoreIcon size={18} /> Messages
+        </Link>
       </div>
-    </div>  
+    </div>
   );
 }
-
-export default UserInformation;

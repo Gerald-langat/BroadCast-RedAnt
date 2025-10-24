@@ -50,7 +50,7 @@ import { useProfile } from "./useProfile";
   }, [query]);
 
   return (
-    <div className="flex items-center p-2 max-w-6xl mx-auto sticky top-0 z-50 bg-white dark:bg-gray-900 border-b">
+    <div className="flex items-center w-full p-2 max-w-6xl mx-auto sticky top-0 z-50 bg-gray-50 dark:bg-gray-900 border-b">
       {/* Logo */}
       <Image
         className="rounded-lg"

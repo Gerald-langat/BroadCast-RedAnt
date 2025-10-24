@@ -15,7 +15,7 @@ function Members({ users }: { users: IProfileBase[] }) {
     const author = user?.id;
 
   return (  
-      <div className='flex flex-col space-y-1  mr-6 rounded-lg border p-4 mt-1'>
+      <div className='flex flex-col space-y-1  mr-6 rounded-lg border w-full p-4 mt-1'>
         <div className="flex justify-between items-center">
            <p className="text-nowrap">members {formatNumber(users?.length)}</p>
             <Link href="/members" className="text-xs cursor-pointer text-blue-500">View all</Link> 
