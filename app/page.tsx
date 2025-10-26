@@ -1,87 +1,60 @@
-"use client";
 
-import useSWR from "swr";
-import { useState } from "react";
-import { Menu, X, LayoutGrid } from "lucide-react";
-import { SignedIn } from "@clerk/nextjs";
-import PostForm from "@/components/PostForm";
+import PostForm from "@/components/PostForm"; 
+import UserInformation from "@/components/UserInformation"; 
+import Widget from "@/components/Widget"; 
+import { Post } from "@/mongodb/models/post"; 
+import { SignedIn } from "@clerk/nextjs"; 
+import connectDB from "@/mongodb/db"; 
+import { Profile } from "@/mongodb/models/profile"; 
+import { currentUser } from "@clerk/nextjs/server"; 
+import { redirect } from "next/navigation"; 
+import Members from "@/components/Members"; 
+import { Menu } from "lucide-react"; 
+import { Sidebar } from "@/components/ui/sidebar"; 
 import PostFeed from "@/components/PostFeed";
-import UserInformation from "@/components/UserInformation";
-import Members from "@/components/Members";
-import Widget from "@/components/Widget";
+import HomeClient from "./homeClient";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+export const revalidate = 0; 
 
-export default function HomeClient({ user }: { user: any }) {
-  const [leftOpen, setLeftOpen] = useState(false);
-  const [rightOpen, setRightOpen] = useState(false);
-
-  // Fetch posts and users
-  const { data: posts, isLoading: postsLoading } = useSWR("/api/posts", fetcher);
-  const { data: users, isLoading: usersLoading } = useSWR("/api/users", fetcher);
-
-  if (postsLoading || usersLoading) {
-    return <div className="flex justify-center mt-20 text-gray-500">Loading...</div>;
-  }
-
-  return (
-   <div className="relative flex lg:grid lg:grid-cols-8 max-w-7xl mx-auto mt-5 ">
-  {/* Left Sidebar */}
-  <div
-    className={`fixed left-0 h-full w-72  shadow-lg z-40 transform transition-transform duration-300
-      ${leftOpen ? "translate-x-0 top-14 bg-gray-50 dark:bg-gray-900" : "-translate-x-full top-14"}
-      lg:relative lg:col-span-2 lg:translate-x-0 lg:top-0`}
-  >
-    <div className="p-4 md:sticky md:top-20 overflow-y-auto h-full">
-      <UserInformation posts={posts} />
-      <Members users={users} />
-    </div>
-  </div>
-
-  {/* Main Feed */}
-  <section
-    className="flex-1 w-full lg:col-span-6 xl:col-span-4 xl:max-w-xl mx-auto md:w-auto transition-all duration-300"
-  >
-    <SignedIn>
-      <PostForm user={user} />
-    </SignedIn>
-    <PostFeed posts={posts} />
-  </section>
-
-  {/* Right Sidebar */}
-  <div
-    className={`fixed right-0 h-full w-64  shadow-lg z-40 transform transition-transform duration-300
-      ${rightOpen ? "translate-x-0 top-14 bg-gray-50 dark:bg-gray-900" : "translate-x-full top-14"}
-      xl:relative xl:block xl:translate-x-0 xl:col-span-2 md:top-0`}
-  >
-    <div className="p-4 md:sticky md:top-20 overflow-y-auto h-full">
-      <Widget />
-    </div>
-  </div>
-
-  {/* Menu Button (Left Sidebar) */}
-  <button
-    onClick={() => {
-      setLeftOpen(!leftOpen);
-      setRightOpen(false);
-    }}
-    className="fixed bottom-5 left-5 z-50 md:hidden p-2 rounded-full"
-  >
-    {leftOpen ? <X /> : <Menu />}
-  </button>
-
-  {/* Widget Button (Right Sidebar) */}
-  <button
-    onClick={() => {
-      setRightOpen(!rightOpen);
-      setLeftOpen(false);
-    }}
-    className="fixed bottom-5 right-5 z-50 md:hidden bg-gray-800 text-white p-2 rounded-full"
-  >
-    {rightOpen ? <X /> : <LayoutGrid />}
-  </button>
-</div>
-
-
-  );
-}
+export default async function Home() { 
+  await connectDB(); // ✅ Await currentUser properly 
+  const user = await currentUser(); 
+  // Handle case when no Clerk user is found (unauthenticated)\
+  if (!user) { redirect("/auth"); } 
+  // ✅ Fetch profile from MongoDB using Clerk user ID 
+  const userDB = await Profile.getProfile(user.id); 
+  const safeUser = userDB ? JSON.parse(JSON.stringify(userDB)) : null; const users = await Profile.find().lean(); 
+  // 🔑 convert docs to plain objects 
+  const safeUsers = JSON.parse(JSON.stringify(users)); 
+  // ensure no non-serializable values 
+  if (!safeUser) { redirect("/auth"); } 
+  // ✅ Fetch all posts 
+   const posts = await Post.getAllPosts(); 
+  
+  return ( 
+  <div> 
+    <div className="grid grid-cols-8 mt-5 gap-3"> 
+  {/* Left sidebar */} 
+      <section className="hidden md:block md:col-span-2"> 
+        <div className="sticky top-20">
+           <UserInformation posts={posts} /> 
+        <Members users={safeUsers}/> 
+        </div> 
+        </section> 
+        {/* Main content */}
+        <section className="col-span-full md:col-span-6 xl:col-span-4 xl:max-w-xl mx-auto w-full"> 
+          <SignedIn> 
+            <PostForm user={safeUser}/> 
+          </SignedIn> 
+          <PostFeed posts={posts} /> 
+          </section> 
+          {/* Right sidebar */} 
+          <section className="hidden xl:block justify-center col-span-2"> 
+            <div className="sticky top-20"> 
+              <Widget /> 
+              </div> 
+          </section> 
+            </div> 
+        </div> 
+          ); 
+        }
