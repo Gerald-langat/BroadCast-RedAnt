@@ -24,37 +24,42 @@ export default function UserInformation({ posts }: { posts: any[] }) {
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex flex-col justify-center items-center mr-6 rounded-lg border w-full py-4">
-        <Link href={`/profile/${profile?.userId}`} className="flex flex-col items-center gap-2">
-          <Avatar className="h-16 w-16 mb-5">
-            <AvatarImage src={profile?.userImg || ""} />
-            <AvatarFallback>
-              {profile?.firstName?.[0]}
-              {profile?.lastName?.[0]}
-            </AvatarFallback>
-          </Avatar>
+        <div className="flex flex-col justify-center items-center mr-6 rounded-lg border w-full py-4">
+      {loadingProfile ? (
+        "loading..."
+      ): (
+        <div>
+          <Link href={`/profile/${profile?.userId}`} className="flex flex-col items-center gap-2">
+            <Avatar className="h-16 w-16 mb-5">
+              <AvatarImage src={profile?.userImg || ""} />
+              <AvatarFallback>
+                {profile?.firstName?.[0]}
+                {profile?.lastName?.[0]}
+              </AvatarFallback>
+            </Avatar>
 
-          <div className="text-center">
-            <p className="font-semibold text-sm">
-              {profile?.firstName} {profile?.lastName}
-            </p>
-            <p className="text-xs">@{profile?.nickName}</p>
+            <div className="text-center">
+              <p className="font-semibold text-sm">
+                {profile?.firstName} {profile?.lastName}
+              </p>
+              <p className="text-xs">@{profile?.nickName}</p>
+            </div>
+          </Link>
+
+          <hr className="w-full my-5" />
+
+          <div className="flex justify-between w-full px-4 text-sm">
+            <p className="font-semibold text-gray-400">Posts</p>
+            <p className="text-blue-400">{formatNumber(userPosts?.length)}</p>
           </div>
-        </Link>
 
-        <hr className="w-full my-5" />
-
-        <div className="flex justify-between w-full px-4 text-sm">
-          <p className="font-semibold text-gray-400">Posts</p>
-          <p className="text-blue-400">{formatNumber(userPosts?.length)}</p>
+          <div className="flex justify-between w-full px-4 text-sm">
+            <p className="font-semibold text-gray-400">Comments</p>
+            <p className="text-blue-400">{formatNumber(userComments?.length)}</p>
+          </div>
         </div>
-
-        <div className="flex justify-between w-full px-4 text-sm">
-          <p className="font-semibold text-gray-400">Comments</p>
-          <p className="text-blue-400">{formatNumber(userComments?.length)}</p>
-        </div>
-      </div>
-
+      )}
+ </div>
       <div className="flex flex-col space-y-1 mr-6 rounded-lg border w-full p-4 mt-1">
         <Link href="/" className="flex gap-2 items-center">
           <HomeIcon size={18} /> Home

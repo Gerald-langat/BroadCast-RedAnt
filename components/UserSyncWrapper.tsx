@@ -1,27 +1,21 @@
 "use client"
 
 import streamClient from "@/lib/stream";
+import { IProfileBase } from "@/mongodb/models/profile";
 import { useCallback, useEffect, useState } from "react";
 
-export type UserProfile = {
-  firstName: string;
-  lastName: string;
-  nickName: string;
-  imageUrl?: string | null;
-  userId: string;
-  userImg: string;
-};
+
 
 export const useStreamUser = () => {
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<IProfileBase | null>(null);
 
   const fetchUser = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch("/api/profile");
       if (!res.ok) throw new Error("Failed to fetch user");
-      const data: UserProfile = await res.json();
+      const data: IProfileBase = await res.json();
       setUser(data);
     } catch (err) {
       console.error(err);
@@ -48,7 +42,7 @@ export const useStreamUser = () => {
         {
           id: user.userId,
           name: user.firstName,
-          image: user.imageUrl || user.userImg,
+          image: user.userImg,
         },
         tokenProvider
       );
