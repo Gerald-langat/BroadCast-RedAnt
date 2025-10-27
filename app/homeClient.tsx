@@ -14,7 +14,7 @@ export default function HomeClient({ posts, users }: any) {
   <div className="relative flex md:grid md:grid-cols-8 max-w-7xl mx-auto mt-5 sm:px-5">
   {/* Left Sidebar */}
   <div
-    className={`fixed left-0 h-full w-72 bg-gray-50 dark:bg-gray-900 shadow-lg z-40 transform transition-transform duration-300
+    className={`fixed left-0 h-full w-72 md:hidden bg-gray-50 dark:bg-gray-900 shadow-lg z-40 transform transition-transform duration-300
       ${leftOpen ? "translate-x-0 top-14" : "-translate-x-full top-14"}
       md:relative md:col-span-2 md:translate-x-0 md:top-0`}
   >
@@ -24,14 +24,11 @@ export default function HomeClient({ posts, users }: any) {
     </div>
   </div>
 
-  {/* Main Feed */}
- 
-
   {/* Right Sidebar */}
   <div
-    className={`fixed right-0 h-full w-64 bg-gray-50 dark:bg-gray-900 shadow-lg z-40 transform transition-transform duration-300
+    className={`fixed right-0 h-full w-64 md:hidden bg-gray-50 dark:bg-gray-900 shadow-lg z-40 transform transition-transform duration-300
       ${rightOpen ? "translate-x-0 top-14" : "translate-x-full top-14"}
-      xl:relative xl:block xl:translate-x-0 xl:col-span-2 md:top-0`}
+      md:relative md:block md:translate-x-0 md:col-span-2 md:top-0`}
   >
     <div className="p-4 md:sticky md:top-20 overflow-y-auto h-full">
       <Widget />

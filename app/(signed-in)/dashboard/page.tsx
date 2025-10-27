@@ -42,7 +42,7 @@ try {
 }
 
   return (
-    <div className="flex flex-col w-full flex-1 bg-white">
+    <div className="flex flex-col w-full flex-1">
       {channel ? (
         <Channel>
           <Window>
@@ -57,7 +57,7 @@ try {
     <div className="flex space-x-2 items-center">
       <Button
         variant="outline"
-        className="flex items-center gap-2 bg-white"
+        className="flex items-center gap-2"
         onClick={handleCall}
       >
         <VideoIcon className="w-4 h-4" />
@@ -66,7 +66,7 @@ try {
 
       <Button
         variant="outline"
-        className="flex items-center gap-2 bg-white"
+        className="flex items-center gap-2"
         onClick={handleLeaveChat}
       >
         <XIcon className="text-red-500 hover:text-red-600 hover:bg-red-50" />
@@ -81,7 +81,7 @@ try {
   </div>
 
   {/* Input pinned bottom */}
-  <div className="sticky bottom-0 w-full border-t bg-background p-2">
+  <div className="sticky bottom-0 w-full border-t p-2">
     <MessageInput />
   </div>
 </div>

@@ -10,31 +10,23 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { Button } from "./ui/button"
-import { useUser } from "@clerk/nextjs"
 import { ChannelFilters, ChannelSort } from "stream-chat";
 import { ChannelList } from "stream-chat-react";
 import NewChatDialog from "./NewChatDialog";
-import { useEffect, useState } from "react";
 import { MessageCircleDashed } from "lucide-react";
 import streamClient from "@/lib/stream";
+import useSWR from "swr";
+import { IProfileBase } from "@/mongodb/models/profile";
 
-type UserProfile = {
-  firstName: string;
-  lastName: string;
-  nickName: string;
-  imageUrl?: string | null;
-  selectedCategory: string;
-  selectedCounty: string;
-  selectedConstituency: string;
-  selectedWard: string;
-  userImg: string
-  userId: string
-};
+
+const fetcher = (url: string) => fetch(url).then((res) => {
+  if (!res.ok) throw new Error("Failed to fetch");
+  return res.json();
+});
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    const [loading, setLoading] = useState(true);
-      const [profile, setProfile] = useState<UserProfile | null>(null);
-    const { user } = useUser();
+ 
+    const { data: profile, error, isLoading } = useSWR<IProfileBase>("/api/profile", fetcher);
 
     const filters: ChannelFilters = {
         members: { $in: [profile?.userId as string] }, // not Clerk user.id
@@ -46,39 +38,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         last_message_at: -1,
     }
 
-  // Fetch profile
-    useEffect(() => {
-      const fetchProfile = async () => {
-        try {
-          setLoading(true);
-          const res = await fetch("/api/profile");
-          if (!res.ok) throw new Error("Failed to fetch profile");
-          const data: UserProfile = await res.json();
-          setProfile(data);
-        } catch (err) {
-          console.error(err);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchProfile();
-    }, []);
 
   return (
-    <Sidebar variant="floating" className="bg-white">
+    <Sidebar variant="floating" className="dark:bg-black">
       <SidebarHeader>
         <SidebarMenu>
             <SidebarMenuItem>
                 <SidebarMenuButton>
-                    {loading ? (
+                    {isLoading ? (
                         <span>loading profile...</span>
                     ):(
                        <div className="flex items-center justify-between w-full">
                         <div className="flex flex-col">
                             <span className="text-xs text-muted-foreground">Welcome back</span>
-                            <span>{profile?.firstName}</span>
+                            <div className="flex space-x-2">
+                              <span>{profile?.firstName}</span>
+                            <span className="text-gray-400">@{profile?.nickName}</span>
+                            </div>
+                            
                         </div>
-                        <img src={profile?.imageUrl || profile?.userImg} className="h-8 w-8 rounded-full " alt={profile?.firstName}/>
+                        <img src={profile?.userImg} className="h-8 w-8 rounded-full " alt={profile?.firstName}/>
                     </div> 
                     )}
                     
@@ -93,7 +72,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <Button variant="outline" className="w-full">Start New Chat</Button>
                 </NewChatDialog>
                 {/* chanel list */}
-                 {!loading && streamClient.userID && (                  
+                 {!isLoading && streamClient.userID && (                  
                    <ChannelList
                 sort={sort}
                 filters={{

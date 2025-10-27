@@ -76,18 +76,18 @@ function Post({ post }: { post: IPostDocument }) {
               <ReactTimeago date={new Date(post.createdAt)} />
             </p>
 
-            <div className="dark:bg-gray-950 bg-white">
+            <div>
               <Popover>
                 <PopoverTrigger>
                   <MoreHorizontal />
                 </PopoverTrigger>
-                <PopoverContent className="dark:bg-gray-950 bg-white">
+                <PopoverContent className="dark:bg-gray-900 bg-white">
                   {isAuthor ? (
                               <div
                                 onClick={() => { deletePostAction(String(post._id))}}
                                 
                               >
-                                <p className="text-red-600 cursor-pointer">Delete</p>
+                                <p className="text-red-600 cursor-pointer hover:text-red-500">Delete</p>
                               </div>
                             ) : (
                              <p onClick={() => handleFollow(String(post.user.userId))} className="cursor-pointer">

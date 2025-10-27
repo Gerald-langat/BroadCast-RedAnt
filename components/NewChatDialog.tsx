@@ -1,6 +1,7 @@
 "use client";
+
 import { useUser } from "@clerk/nextjs";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useChatContext } from "stream-chat-react";
 import {
   Dialog,
@@ -16,54 +17,40 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { useCreateNewChat } from "@/app/hooks/useCreateNewChat";
 import UserSearch from "./UserSearch";
+import { IProfileBase } from "@/mongodb/models/profile";
+import useSWR from "swr";
 
-type Doc = {
-  firstName: string;
-  lastName: string;
-  nickName: string;
-  imageUrl?: string | null;
-  userId: string;
-  userImg: string;
-  userToken?: string;
+// ✅ SWR fetcher with deduplication
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch users");
+
+  const data: IProfileBase[] = await res.json();
+
+  // Remove duplicates based on userId
+  const unique = data.reduce((acc: IProfileBase[], current) => {
+    if (!acc.find((item) => item.userId === current.userId)) {
+      acc.push(current);
+    }
+    return acc;
+  }, []);
+
+  return unique;
 };
 
 function NewChatDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
-  const [allUsers, setAllUsers] = useState<Doc[]>([]);
-  const [selectedUsers, setSelectedUsers] = useState<Doc[]>([]);
   const [groupName, setGroupName] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState<IProfileBase[]>([]); // ✅ added
   const createNewChat = useCreateNewChat();
-  const [loading, setLoading] = useState(true);
   const { user } = useUser();
   const { setActiveChannel } = useChatContext();
 
-  useEffect(() => {
-    const fetchStatuses = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch("/api/users");
-        if (!res.ok) throw new Error("Failed to fetch users");
-
-        const data: Doc[] = await res.json();
-
-        // remove duplicates
-        const unique = data.reduce((acc: Doc[], current) => {
-          if (!acc.find((item) => item.userId === current.userId)) {
-            acc.push(current);
-          }
-          return acc;
-        }, []);
-
-        setAllUsers(unique);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStatuses();
-  }, []);
+  // ✅ useSWR for users
+  const { data: allUsers, error, isLoading } = useSWR<IProfileBase[]>(
+    "/api/users",
+    fetcher
+  );
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
@@ -73,18 +60,18 @@ function NewChatDialog({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const handleSelectUser = (user: Doc) => {
+  const handleSelectUser = (user: IProfileBase) => {
     setSelectedUsers((prev) => {
       if (prev.some((u) => u.userId === user.userId)) {
-        return prev.filter((u) => u.userId !== user.userId); // remove if already selected
+        return prev.filter((u) => u.userId !== user.userId);
       }
       return [...prev, user];
     });
   };
 
   const removeUser = (userId: string) => {
-    setSelectedUsers((prev) => prev.filter((user) => user.userId !== userId))
-  }
+    setSelectedUsers((prev) => prev.filter((user) => user.userId !== userId));
+  };
 
   const handleCreateChat = async () => {
     const totalMembers = selectedUsers.length + 1;
@@ -96,7 +83,6 @@ function NewChatDialog({ children }: { children: React.ReactNode }) {
       groupName: isGroupChat ? groupName.trim() || undefined : undefined,
     });
 
-    
     setActiveChannel(channel);
     setSelectedUsers([]);
     setGroupName("");
@@ -115,11 +101,20 @@ function NewChatDialog({ children }: { children: React.ReactNode }) {
         </DialogHeader>
 
         <div className="space-y-4">
-          <UserSearch
-            users={allUsers}
-            onSelectUser={handleSelectUser}
-            className="w-full"
-          />
+          {/* ✅ Handle loading and error states */}
+          {isLoading && <p className="text-sm text-muted-foreground">Loading users...</p>}
+          {error && <p className="text-sm text-red-500">Failed to load users.</p>}
+
+          {!isLoading && allUsers && (
+            <UserSearch
+              users={allUsers.map(user => ({
+                ...user,
+                userImg: user.userImg || '/default-avatar.png'
+              }))}
+              onSelectUser={handleSelectUser}
+              className="w-full"
+            />
+          )}
 
           {selectedUsers.length > 0 && (
             <div className="space-y-3">
@@ -130,14 +125,12 @@ function NewChatDialog({ children }: { children: React.ReactNode }) {
                 {selectedUsers.map((user) => (
                   <div
                     key={user.userId}
-                    className="flex items-center justify-between p-2  border border-border rounded-lg"
+                    className="flex items-center justify-between p-2 border border-border rounded-lg"
                   >
                     <div className="flex items-center space-x-2">
-                      <Image
-                        src={user.imageUrl || user.userImg}
-                        alt={user.firstName}
-                        width={24}
-                        height={24}
+                      <img
+                        src={user.userImg}
+                        alt={user.firstName || "User"}
                         className="h-6 w-6 rounded-full object-cover"
                       />
                       <div>

@@ -30,7 +30,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     if (!user) { redirect("/auth"); } 
     // ✅ Fetch profile from MongoDB using Clerk user ID 
     const userDB = await Profile.getProfile(user?.id); 
-    const safeUser = userDB ? JSON.parse(JSON.stringify(userDB)) : null; const users = await Profile.find().lean(); 
+    const safeUser = userDB ? JSON.parse(JSON.stringify(userDB)) : null;
+    const users = await Profile.find().lean(); 
     // 🔑 convert docs to plain objects 
     const safeUsers = JSON.parse(JSON.stringify(users)); 
     // ensure no non-serializable values 

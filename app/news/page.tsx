@@ -43,7 +43,7 @@ function NewsPage() {
   if (error) return <p className="p-4 text-red-500">Failed to load news</p>;
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-4 py-4">
       {data?.length === 0 ? (
         <p>No news posts available.</p>
       ) : (

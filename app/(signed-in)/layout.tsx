@@ -7,18 +7,22 @@ import {   SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui
 import { Separator } from "@/components/ui/separator";
 import { AppSidebar } from "@/components/app-sidebar";
 import "stream-chat-react/dist/css/v2/index.css";
+import { useTheme } from "next-themes";
 
 
 function Layout({ children }: { children: React.ReactNode }) {
-    
+    const { theme } = useTheme(); // from shadcn
+  const isDark = theme === "dark";
+
     return (
      
 
-        <Chat client={streamClient}>
+        <Chat client={streamClient}
+         theme={isDark ? "str-chat__theme-dark" : "str-chat__theme-light"}>
           <SidebarProvider>
              <AppSidebar />
                 <SidebarInset>
-                    <header className="flex h-16 shrink-0 items-center gap-2 px-4 bg-white text-black">
+                    <header className="flex h-16 shrink-0 items-center gap-2 px-4 dark:bg-black">
                        <SidebarTrigger className="-ml-1" />
                        <Separator 
                         orientation="vertical"
@@ -28,7 +32,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                           <h1>Broadcast</h1>
                        </Link>
                     </header>
-                    <div>
+                    <div className="dark:bg-black">
                         {children}
                     </div>
                 </SidebarInset>
