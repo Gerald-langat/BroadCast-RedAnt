@@ -90,7 +90,7 @@ try {
           <Thread />
         </Channel>
       ): (
-        <div className="flex flex-col items-center justify-center">
+        <div className="flex flex-col items-center justify-center min-h-screen">
           <h2 className="text-2xl font-semibold text-muted-foreground">
             No chat selected
           </h2>
