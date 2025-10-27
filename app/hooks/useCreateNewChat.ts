@@ -6,6 +6,7 @@ type CreateNewChatParams = {
   members: string[];
   createdBy: string;
   groupName?: string;
+  isAIChat?: boolean;
 };
 
 export const useCreateNewChat = () => {
@@ -15,6 +16,26 @@ export const useCreateNewChat = () => {
     createdBy,
     groupName,
   }: CreateNewChatParams) => {
+
+if (members.includes("ai-assistant")) {
+  try {
+    console.log("Ensuring AI assistant user exists...");
+    const res = await fetch("/api/stream/upsert-ai", { method: "POST" });
+    const data = await res.json();
+
+    if (!data.success) {
+      console.error("❌ Failed to create AI user:", data.error);
+      throw new Error("AI assistant not available");
+    }
+
+    console.log("✅ AI assistant ready!");
+  } catch (error) {
+    console.error("❌ Error ensuring AI assistant:", error);
+  }
+}
+
+
+
     const isGroupChat = members.length > 2;
 
     if (!isGroupChat) {

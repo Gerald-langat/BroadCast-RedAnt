@@ -12,6 +12,12 @@ export const useCreateNewChat = () => {
   }) => {
     // 🔑 Connect user if not already connected
     
+    if (members.includes("ai-assistant")) {
+  const res = await fetch("/api/stream/upsert-ai", { method: "POST" });
+  const data = await res.json();
+  if (!data.success) throw new Error("Failed to create AI user");
+}
+
 
     const isGroupChat = members.length > 2;
 

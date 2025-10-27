@@ -11,12 +11,13 @@ import {
 } from "@/components/ui/sidebar"
 import { Button } from "./ui/button"
 import { ChannelFilters, ChannelSort } from "stream-chat";
-import { ChannelList } from "stream-chat-react";
+import { ChannelList, useChatContext } from "stream-chat-react";
 import NewChatDialog from "./NewChatDialog";
 import { MessageCircleDashed } from "lucide-react";
 import streamClient from "@/lib/stream";
 import useSWR from "swr";
 import { IProfileBase } from "@/mongodb/models/profile";
+import { useCreateNewChat } from "@/app/hooks/useCreateNewChat";
 
 
 const fetcher = (url: string) => fetch(url).then((res) => {
@@ -25,6 +26,8 @@ const fetcher = (url: string) => fetch(url).then((res) => {
 });
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+   const { setActiveChannel } = useChatContext();
+   const createNewChat = useCreateNewChat();
  
     const { data: profile, error, isLoading } = useSWR<IProfileBase>("/api/profile", fetcher);
 
@@ -37,6 +40,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const sort: ChannelSort = {
         last_message_at: -1,
     }
+
+const handleChatWithAI = async () => {
+  try {
+    if (!profile?.userId) {
+      console.error("User not loaded yet");
+      return;
+    }
+
+    // Create or open an AI chat channel
+    const channel = await createNewChat({
+      members: [profile.userId, "ai-assistant"],
+      createdBy: profile.userId,
+    });
+
+    // Watch and activate the channel
+    await channel.watch({ presence: true });
+    setActiveChannel(channel);
+
+    console.log("✅ AI Chat started with:", channel.id);
+  } catch (err) {
+    console.error("❌ Failed to start AI chat:", err);
+  }
+};
+
 
 
   return (
@@ -71,6 +98,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <NewChatDialog>
                     <Button variant="outline" className="w-full">Start New Chat</Button>
                 </NewChatDialog>
+                <div className="flex items-center"><hr className="w-1/2 mr-1"/>or<hr className="w-1/2 ml-1"/></div>
+                <Button variant="outline" className="w-full"   onClick={handleChatWithAI}>Chat with AI</Button>
                 {/* chanel list */}
                  {!isLoading && streamClient.userID && (                  
                    <ChannelList

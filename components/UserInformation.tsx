@@ -25,11 +25,8 @@ export default function UserInformation({ posts }: { posts: any[] }) {
   return (
     <div className="flex flex-col gap-1">
         <div className="flex flex-col justify-center items-center mr-6 rounded-lg border w-full py-4">
-      {loadingProfile ? (
-        "loading..."
-      ): (
-        <div>
-          <Link href={`/profile/${profile?.userId}`} className="flex flex-col items-center gap-2">
+      {loadingProfile ? <div className="py-12">loading...</div> : (
+        <Link href={`/profile/${profile?.userId}`} className="flex flex-col items-center gap-2">
             <Avatar className="h-16 w-16 mb-5">
               <AvatarImage src={profile?.userImg || ""} />
               <AvatarFallback>
@@ -44,7 +41,9 @@ export default function UserInformation({ posts }: { posts: any[] }) {
               </p>
               <p className="text-xs">@{profile?.nickName}</p>
             </div>
-          </Link>
+          </Link> 
+      )}
+         
 
           <hr className="w-full my-5" />
 
@@ -57,8 +56,7 @@ export default function UserInformation({ posts }: { posts: any[] }) {
             <p className="font-semibold text-gray-400">Comments</p>
             <p className="text-blue-400">{formatNumber(userComments?.length)}</p>
           </div>
-        </div>
-      )}
+        
  </div>
       <div className="flex flex-col space-y-1 mr-6 rounded-lg border w-full p-4 mt-1">
         <Link href="/" className="flex gap-2 items-center">
