@@ -16,7 +16,6 @@ function Layout({ children }: { children: React.ReactNode }) {
 
     return (
      
-
         <Chat client={streamClient}
          theme={isDark ? "str-chat__theme-dark" : "str-chat__theme-light"}>
           <SidebarProvider>
@@ -39,7 +38,6 @@ function Layout({ children }: { children: React.ReactNode }) {
           </SidebarProvider>
         </Chat>
       
-
     )
 }
 

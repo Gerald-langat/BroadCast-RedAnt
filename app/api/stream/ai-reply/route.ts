@@ -1,4 +1,3 @@
-// app/api/stream/ai-reply/route.ts
 import { StreamChat } from "stream-chat";
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
@@ -8,17 +7,22 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { channelId, messageText } = body;
 
+    console.log("🟢 Received request for AI reply:", { channelId, messageText });
+
     if (!channelId || !messageText) {
       return NextResponse.json({ error: "Missing channelId or messageText" }, { status: 400 });
     }
 
-    // ✅ Initialize Stream client (use your Stream keys)
     const client = StreamChat.getInstance(
       process.env.NEXT_PUBLIC_STREAM_API_KEY!,
       process.env.STREAM_API_SECRET_KEY!
     );
 
-    // ✅ Call your AI chat route (or OpenAI directly)
+    await client.upsertUser({
+      id: "ai-assistant",
+      name: "AI Assistant",
+    });
+
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     });
@@ -33,17 +37,17 @@ export async function POST(req: Request) {
 
     const aiReply = completion.choices[0]?.message?.content || "I'm not sure how to respond.";
 
-    // ✅ Send reply as AI Assistant
+    console.log("🤖 AI generated reply:", aiReply);
+
     await client.channel("messaging", channelId).sendMessage({
       text: aiReply,
       user_id: "ai-assistant",
     });
 
-    console.log("Request received:", body);
-
+    console.log("✅ Sent AI message to channel:", channelId);
     return NextResponse.json({ success: true, aiReply });
-  } catch (error) {
-    console.error("AI Reply Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("❌ AI Reply Error:", error);
+    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
   }
 }
