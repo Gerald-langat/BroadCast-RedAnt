@@ -39,6 +39,8 @@ export async function POST(req: Request) {
       user_id: "ai-assistant",
     });
 
+    console.log("Request received:", body);
+
     return NextResponse.json({ success: true, aiReply });
   } catch (error) {
     console.error("AI Reply Error:", error);

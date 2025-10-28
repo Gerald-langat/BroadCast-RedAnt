@@ -34,9 +34,10 @@ function CustomMessageInput({ channel }: { channel: any }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             channelId: channel.id,
-            message: text,
+            messageText: text, // ✅ must match your API route
           }),
         });
+
       }
     } catch (error) {
       console.error("Failed to send message:", error);
@@ -106,7 +107,8 @@ function Dashboard() {
                 ) : (
                   <ChannelHeader />
                 )}
-                <div className="flex space-x-2 items-center">
+                {!channel?.id?.includes("ai-assistant") && (
+                  <div className="flex space-x-2 items-center">
                   <Button
                     variant="outline"
                     className="flex items-center gap-2"
@@ -125,6 +127,8 @@ function Dashboard() {
                     Leave Chat
                   </Button>
                 </div>
+                )}
+                
               </div>
 
               {/* Messages */}
