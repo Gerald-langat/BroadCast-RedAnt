@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { use, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { useChatContext } from 'stream-chat-react';
 import useSWR from 'swr';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -32,6 +33,7 @@ function Page({ params }: { params: Promise<{ userId: string }> }) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const { handleFollow, following, followers, followingCount, followersCount, loading  } = useFollowContext();
+     const { setActiveChannel } = useChatContext();
   
    // Fetch user profile data
    const {
@@ -50,23 +52,28 @@ function Page({ params }: { params: Promise<{ userId: string }> }) {
   
 
 const handleClick = async () => {
-  if (!user?.id || !userId) return;
+  try {
+    if (!user?.id) {
+      console.error("User not loaded yet");
+      return;
+    }
 
-  // 🔹 Get user token from your backend
-  const res = await fetch("/api/stream/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: user.id }),
-  });
+    // Create or open an AI chat channel
+    const channel = await createNewChat({
+      members: [user.id, userId],
+      createdBy: user.id,
+    });
 
-  // 🔹 Pass the token to createNewChat
-  const channel = await createNewChat({
-    members: [user.id, userId],
-    createdBy: user.id,
-  });
+    // Watch and activate the channel
+    await channel.watch({ presence: true });
+    setActiveChannel(channel);
 
-  router.push(`/dashboard?channel=${channel.id}`);
+    console.log("✅ AI Chat started with:", channel.id);
+  } catch (err) {
+    console.error("❌ Failed to start AI chat:", err);
+  }
 };
+
 
 const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];

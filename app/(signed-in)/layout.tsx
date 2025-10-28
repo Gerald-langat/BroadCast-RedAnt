@@ -32,7 +32,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                           <h1>Broadcast</h1>
                        </Link>
                     </header>
-                    <div className="dark:bg-black">
+                    <div className="dark:bg-black bg-gray-300">
                         {children}
                     </div>
                 </SidebarInset>
