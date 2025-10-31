@@ -1,74 +1,62 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useStreamUser } from "@/components/UserSyncWrapper";
-import { VideoIcon, XIcon } from "lucide-react";
+import { VideoIcon, XIcon, BotIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   Channel,
   ChannelHeader,
+  MessageInput,
   MessageList,
   Thread,
   useChatContext,
   Window,
 } from "stream-chat-react";
-
-function CustomMessageInput({ channel }: { channel: any }) {
-  const [text, setText] = useState("");
-  const [sending, setSending] = useState(false);
-
-  const handleSend = async () => {
-    if (!text.trim()) return;
-    setSending(true);
-
-    try {
-      // 1️⃣ Send user's message to the Stream channel
-      await channel.sendMessage({ text });
-
-      // 2️⃣ If AI assistant is part of the chat, trigger AI reply
-      if (channel.data?.member_count === 2 && channel.id.includes("ai-assistant")) {
-        await fetch("/api/stream/ai-reply", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            channelId: channel.id,
-            messageText: text, // ✅ must match your API route
-          }),
-        });
-
-      }
-    } catch (error) {
-      console.error("Failed to send message:", error);
-    } finally {
-      setText("");
-      setSending(false);
-    }
-  };
-
-  return (
-    <div className="flex items-center gap-2 border-t p-2">
-      <input
-        type="text"
-        placeholder="Type a message..."
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        className="flex-1 p-2 border rounded-lg focus:outline-none"
-        disabled={sending}
-      />
-      <Button onClick={handleSend} disabled={sending || !text.trim()}>
-        {sending ? "Sending..." : "Send"}
-      </Button>
-    </div>
-  );
-}
+import { useWatchers } from "./useWatchers";
+import MyMessage from "./MyMessage";
+import { useState } from "react";
+import MyAIStateIndicator from "./MyAIStateIndicator";
 
 function Dashboard() {
   const router = useRouter();
   const { channel, setActiveChannel } = useChatContext();
   const { setOpen } = useSidebar();
   const { user } = useStreamUser();
+  const { watchers } = useWatchers();
+
+  const [loading, setLoading] = useState(false);
+
+  const aiInChannel =
+    (watchers ?? []).filter((watcher) => watcher.includes("ai-bot")).length > 0;
+
+  // 🎯 Toggle AI Assistant on or off
+  async function handleChatWithAI() {
+    if (!channel) return;
+
+    try {
+      setLoading(true);
+      const endpoint = aiInChannel ? "stop-ai-agent" : "start-ai-agent";
+      const res = await fetch(`/api/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ channel_id: channel.id }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Failed: ${text}`);
+      }
+
+      const data = await res.json();
+      console.log("AI Agent response:", data);
+    } catch (err) {
+      console.error("Error toggling AI agent:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const handleCall = () => {
     if (!channel) return;
@@ -97,7 +85,7 @@ function Dashboard() {
   return (
     <div className="flex flex-col w-full flex-1">
       {channel ? (
-        <Channel>
+        <Channel Message={MyMessage}>
           <Window>
             <div className="flex flex-col min-h-screen">
               {/* Header */}
@@ -107,8 +95,7 @@ function Dashboard() {
                 ) : (
                   <ChannelHeader />
                 )}
-                {!channel?.id?.includes("ai-assistant") && (
-                  <div className="flex space-x-2 items-center">
+                <div className="flex space-x-2 items-center">
                   <Button
                     variant="outline"
                     className="flex items-center gap-2"
@@ -116,6 +103,21 @@ function Dashboard() {
                   >
                     <VideoIcon className="w-4 h-4" />
                     Video Call
+                  </Button>
+
+                  {/* 🤖 Toggle AI Chat */}
+                  <Button
+                    variant={aiInChannel ? "secondary" : "default"}
+                    className="flex items-center gap-2"
+                    onClick={handleChatWithAI}
+                    disabled={loading}
+                  >
+                    <BotIcon className="w-4 h-4" />
+                    {loading
+                      ? "Loading..."
+                      : aiInChannel
+                      ? "Stop AI Assistant"
+                      : "Chat with AI"}
                   </Button>
 
                   <Button
@@ -127,30 +129,29 @@ function Dashboard() {
                     Leave Chat
                   </Button>
                 </div>
-                )}
-                
               </div>
 
               {/* Messages */}
               <div className="flex-1 overflow-y-auto px-2">
                 <MessageList />
+                <MyAIStateIndicator />
               </div>
 
-              {/* Input */}
-              <div className="sticky bottom-0 w-full">
-                <CustomMessageInput channel={channel} />
+              {/* Input pinned bottom */}
+              <div className="sticky bottom-0 w-full border-t p-2">
+                <MessageInput />
               </div>
             </div>
           </Window>
           <Thread />
         </Channel>
       ) : (
-        <div className="flex flex-col items-center justify-center min-h-screen">
-          <h2 className="text-2xl font-semibold text-muted-foreground">
+        <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
+          <h2 className="text-2xl font-semibold text-muted-foreground mb-2">
             No chat selected
           </h2>
           <p className="text-muted-foreground">
-            Select a chat from the sidebar or start a new conversation.
+            Select a chat from the sidebar or start a new conversation
           </p>
         </div>
       )}

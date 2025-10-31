@@ -10,7 +10,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { Button } from "./ui/button"
-import { ChannelFilters, ChannelSort } from "stream-chat";
+import { ChannelFilters, ChannelRole, ChannelSort } from "stream-chat";
 import { ChannelList, useChatContext } from "stream-chat-react";
 import NewChatDialog from "./NewChatDialog";
 import { MessageCircleDashed } from "lucide-react";
@@ -18,6 +18,8 @@ import streamClient from "@/lib/stream";
 import useSWR from "swr";
 import { IProfileBase } from "@/mongodb/models/profile";
 import { useCreateNewChat } from "@/app/hooks/useCreateNewChat";
+import { useWatchers } from "@/app/(signed-in)/dashboard/useWatchers";
+import { useState } from "react";
 
 
 const fetcher = (url: string) => fetch(url).then((res) => {
@@ -26,8 +28,8 @@ const fetcher = (url: string) => fetch(url).then((res) => {
 });
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-   const { setActiveChannel } = useChatContext();
-   const createNewChat = useCreateNewChat();
+     const { channel, setActiveChannel } = useChatContext() 
+     const [loading, setLoading] = useState(false);
  
     const { data: profile, error, isLoading } = useSWR<IProfileBase>("/api/profile", fetcher);
 
@@ -40,32 +42,36 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const sort: ChannelSort = {
         last_message_at: -1,
     }
+    
+    const { watchers } = useWatchers();
 
-const handleChatWithAI = async () => {
-  try {
-    if (!profile?.userId) {
-      console.error("User not loaded yet");
-      return;
+  const aiInChannel =
+    (watchers ?? []).filter((watcher) => watcher.includes('ai-bot')).length > 0;
+ 
+
+ async function addOrRemoveAgent() {
+    if (!channel) return;
+    setLoading(true); // start loading
+
+    try {
+      const endpoint = aiInChannel ? "stop-ai-agent" : "start-ai-agent";
+      const res = await fetch(`/api/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ channel_id: channel.id }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update AI agent");
+      }
+    } catch (err) {
+      console.error("Error toggling AI agent:", err);
+    } finally {
+      setLoading(false); // stop loading
     }
-
-    // Create or open an AI chat channel
-    const channel = await createNewChat({
-      members: [profile.userId, "ai-assistant"],
-      createdBy: profile.userId,
-    });
-
-    // Watch and activate the channel
-    await channel.watch({ presence: true });
-    setActiveChannel(channel);
-
-    console.log("✅ AI Chat started with:", channel.id);
-  } catch (err) {
-    console.error("❌ Failed to start AI chat:", err);
   }
-};
 
-
-
+  
   return (
     <Sidebar variant="floating" className="dark:bg-black">
       <SidebarHeader>
@@ -99,9 +105,9 @@ const handleChatWithAI = async () => {
                     <Button variant="outline" className="w-full">Start New Chat</Button>
                 </NewChatDialog>
                 <div className="flex items-center"><hr className="w-1/2 mr-1"/>or<hr className="w-1/2 ml-1"/></div>
-                <Button variant="outline" className="w-full"   onClick={handleChatWithAI}>Chat with AI</Button>
+                <Button variant="outline" className="w-full"   onClick={addOrRemoveAgent}>{loading ? "Chat with AI..." : "Chat with AI"}</Button>
                 {/* chanel list */}
-                 {!isLoading && streamClient.userID && (                  
+                 {streamClient.userID && (                  
                    <ChannelList
                 sort={sort}
                 filters={{
