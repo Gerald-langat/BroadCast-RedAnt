@@ -7,7 +7,7 @@ export async function POST(req: Request) {
 
   const client = StreamChat.getInstance(
     process.env.NEXT_PUBLIC_STREAM_API_KEY!,
-    process.env.STREAM_SECRET_KEY!
+    process.env.STREAM_API_SECRET_KEY!
   );
 
   const aiUserId = "ai-assistant";

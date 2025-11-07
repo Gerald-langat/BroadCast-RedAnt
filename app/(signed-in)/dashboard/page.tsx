@@ -14,49 +14,13 @@ import {
   useChatContext,
   Window,
 } from "stream-chat-react";
-import { useWatchers } from "./useWatchers";
-import MyMessage from "./MyMessage";
-import { useState } from "react";
-import MyAIStateIndicator from "./MyAIStateIndicator";
+
 
 function Dashboard() {
   const router = useRouter();
   const { channel, setActiveChannel } = useChatContext();
   const { setOpen } = useSidebar();
   const { user } = useStreamUser();
-  const { watchers } = useWatchers();
-
-  const [loading, setLoading] = useState(false);
-
-  const aiInChannel =
-    (watchers ?? []).filter((watcher) => watcher.includes("ai-bot")).length > 0;
-
-  // 🎯 Toggle AI Assistant on or off
-  async function handleChatWithAI() {
-    if (!channel) return;
-
-    try {
-      setLoading(true);
-      const endpoint = aiInChannel ? "stop-ai-agent" : "start-ai-agent";
-      const res = await fetch(`/api/${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channel_id: channel.id }),
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Failed: ${text}`);
-      }
-
-      const data = await res.json();
-      console.log("AI Agent response:", data);
-    } catch (err) {
-      console.error("Error toggling AI agent:", err);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   const handleCall = () => {
     if (!channel) return;
@@ -85,7 +49,7 @@ function Dashboard() {
   return (
     <div className="flex flex-col w-full flex-1">
       {channel ? (
-        <Channel Message={MyMessage}>
+        <Channel>
           <Window>
             <div className="flex flex-col min-h-screen">
               {/* Header */}
@@ -104,22 +68,7 @@ function Dashboard() {
                     <VideoIcon className="w-4 h-4" />
                     Video Call
                   </Button>
-
-                  {/* 🤖 Toggle AI Chat */}
-                  <Button
-                    variant={aiInChannel ? "secondary" : "default"}
-                    className="flex items-center gap-2"
-                    onClick={handleChatWithAI}
-                    disabled={loading}
-                  >
-                    <BotIcon className="w-4 h-4" />
-                    {loading
-                      ? "Loading..."
-                      : aiInChannel
-                      ? "Stop AI Assistant"
-                      : "Chat with AI"}
-                  </Button>
-
+            
                   <Button
                     variant="outline"
                     className="flex items-center gap-2"
@@ -134,7 +83,6 @@ function Dashboard() {
               {/* Messages */}
               <div className="flex-1 overflow-y-auto px-2">
                 <MessageList />
-                <MyAIStateIndicator />
               </div>
 
               {/* Input pinned bottom */}

@@ -1,4 +1,5 @@
-"use client"
+"use client";
+
 import {
   Sidebar,
   SidebarContent,
@@ -8,110 +9,127 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { Button } from "./ui/button"
-import { ChannelFilters, ChannelRole, ChannelSort } from "stream-chat";
+} from "@/components/ui/sidebar";
+import { Button } from "./ui/button";
+import { ChannelFilters, ChannelSort } from "stream-chat";
 import { ChannelList, useChatContext } from "stream-chat-react";
 import NewChatDialog from "./NewChatDialog";
 import { MessageCircleDashed } from "lucide-react";
 import streamClient from "@/lib/stream";
 import useSWR from "swr";
 import { IProfileBase } from "@/mongodb/models/profile";
-import { useCreateNewChat } from "@/app/hooks/useCreateNewChat";
-import { useWatchers } from "@/app/(signed-in)/dashboard/useWatchers";
 import { useState } from "react";
+import { useCreateNewChat } from "@/hooks/useCreateNewChat";
 
-
-const fetcher = (url: string) => fetch(url).then((res) => {
-  if (!res.ok) throw new Error("Failed to fetch");
-  return res.json();
-});
+const fetcher = (url: string) =>
+  fetch(url).then((res) => {
+    if (!res.ok) throw new Error("Failed to fetch");
+    return res.json();
+  });
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-     const { channel, setActiveChannel } = useChatContext() 
-     const [loading, setLoading] = useState(false);
- 
-    const { data: profile, error, isLoading } = useSWR<IProfileBase>("/api/profile", fetcher);
+  const { client, setActiveChannel } = useChatContext(); // ✅ stream-chat-react context
+  const [loading, setLoading] = useState(false);
+  const createNewChat = useCreateNewChat();
 
-    const filters: ChannelFilters = {
-        members: { $in: [profile?.userId as string] }, // not Clerk user.id
-        type: {$in: ["messaging", "team"] }
-      };
+  const { data: profile, error, isLoading } = useSWR<IProfileBase>(
+    "/api/profile",
+    fetcher
+  );
 
-    const options = { presence: true, state: true };
-    const sort: ChannelSort = {
-        last_message_at: -1,
+  const filters: ChannelFilters = {
+    members: { $in: [profile?.userId as string] },
+    type: { $in: ["messaging", "team"] },
+  };
+
+  const options = { presence: true, state: true };
+  const sort: ChannelSort = {
+    last_message_at: -1,
+  };
+
+  // ✅ Create or toggle AI chat
+  const handleCreateAIChat = async () => {
+  try {
+    if (!user?.id) {
+      console.error("User ID is missing");
+      return;
     }
-    
-    const { watchers } = useWatchers();
 
-  const aiInChannel =
-    (watchers ?? []).filter((watcher) => watcher.includes('ai-bot')).length > 0;
- 
+    const members = [user.id, ...selectedUsers.map((u) => u.userId)].filter(Boolean);
 
- async function addOrRemoveAgent() {
-    if (!channel) return;
-    setLoading(true); // start loading
+    const channel = await createNewChat({
+      members,
+      createdBy: user.id
+    });
 
-    try {
-      const endpoint = aiInChannel ? "stop-ai-agent" : "start-ai-agent";
-      const res = await fetch(`/api/${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channel_id: channel.id }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to update AI agent");
-      }
-    } catch (err) {
-      console.error("Error toggling AI agent:", err);
-    } finally {
-      setLoading(false); // stop loading
+    if (!channel) {
+      console.error("Failed to create channel");
+      return;
     }
+
+    setActiveChannel(channel);
+  } catch (error) {
+    console.error("Error creating AI chat:", error);
   }
+};
 
-  
+
   return (
     <Sidebar variant="floating" className="dark:bg-black">
       <SidebarHeader>
         <SidebarMenu>
-            <SidebarMenuItem>
-                <SidebarMenuButton>
-                    {isLoading ? (
-                        <span>loading profile...</span>
-                    ):(
-                       <div className="flex items-center justify-between w-full">
-                        <div className="flex flex-col">
-                            <span className="text-xs text-muted-foreground">Welcome back</span>
-                            <div className="flex space-x-2">
-                              <span>{profile?.firstName}</span>
-                            <span className="text-gray-400">@{profile?.nickName}</span>
-                            </div>
-                            
-                        </div>
-                        <img src={profile?.userImg} className="h-8 w-8 rounded-full " alt={profile?.firstName}/>
-                    </div> 
-                    )}
-                    
-                </SidebarMenuButton>
-            </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton>
+              {isLoading ? (
+                <span>loading profile...</span>
+              ) : (
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-muted-foreground">
+                      Welcome back
+                    </span>
+                    <div className="flex space-x-2">
+                      <span>{profile?.firstName}</span>
+                      <span className="text-gray-400">@{profile?.nickName}</span>
+                    </div>
+                  </div>
+                  <img
+                    src={profile?.userImg}
+                    className="h-8 w-8 rounded-full"
+                    alt={profile?.firstName}
+                  />
+                </div>
+              )}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
         <SidebarGroup>
-            <SidebarMenu className="gap-2">
-                <NewChatDialog>
-                    <Button variant="outline" className="w-full">Start New Chat</Button>
-                </NewChatDialog>
-                <div className="flex items-center"><hr className="w-1/2 mr-1"/>or<hr className="w-1/2 ml-1"/></div>
-                <Button variant="outline" className="w-full"   onClick={addOrRemoveAgent}>{loading ? "Chat with AI..." : "Chat with AI"}</Button>
-                {/* chanel list */}
-                 {streamClient.userID && (                  
-                   <ChannelList
+          <SidebarMenu className="gap-2">
+            <NewChatDialog>
+              <Button variant="outline" className="w-full">
+                Start New Chat
+              </Button>
+            </NewChatDialog>
+            <div className="flex items-center">
+              <hr className="w-1/2 mr-1" /> or <hr className="w-1/2 ml-1" />
+            </div>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleCreateAIChat}
+              disabled={loading}
+            >
+              {loading ? "Chatting with AI..." : "Chat with AI"}
+            </Button>
+
+            {!isLoading && streamClient.userID && (
+              <ChannelList
                 sort={sort}
                 filters={{
-                  members: { $in: [streamClient.userID] }, // match connected user
+                  members: { $in: [streamClient.userID] },
                   type: "messaging",
                 }}
                 options={{ state: true, watch: true, presence: true }}
@@ -124,17 +142,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       Ready to chat?
                     </h2>
                     <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-                      Your conversations will appear here once you start chatting with others.
+                      Your conversations will appear here once you start chatting
+                      with others.
                     </p>
                   </div>
-
                 )}
-              />               
-            )}         
-            </SidebarMenu>
+              />
+            )}
+          </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter />
     </Sidebar>
-  )
+  );
 }
