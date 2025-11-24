@@ -1,10 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useStreamUser } from "@/components/UserSyncWrapper";
-import { VideoIcon, XIcon, BotIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { VideoIcon, XIcon } from "lucide-react";
 import {
   Channel,
   ChannelHeader,
@@ -15,24 +16,92 @@ import {
   Window,
 } from "stream-chat-react";
 
-
 function Dashboard() {
   const router = useRouter();
   const { channel, setActiveChannel } = useChatContext();
   const { setOpen } = useSidebar();
   const { user } = useStreamUser();
+  const [aiTyping, setAiTyping] = useState(false);
 
+  // ---------------------------
+  // AI Auto-Reply Logic
+  // ---------------------------
+useEffect(() => {
+  if (!channel) return; // only attach if channel exists
+
+  const handleMessage = async (event: any) => {
+    const msg = event.message;
+
+    // Skip AI messages
+    if (msg.user?.id === "ai-assistant") return;
+
+    const channelId = channel?.id;
+    if (!channelId) return console.error("No channel ID available");
+
+    try {
+      setAiTyping(true); // AI is "thinking"
+
+      const res = await fetch("/api/stream/ai-reply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "message.new",
+          message: msg,
+          channel: { id: channelId },
+        }),
+      });
+
+      const data = await res.json();
+      if (data?.success) {
+        console.log("AI reply sent:", data.reply);
+      }
+
+    } catch (err) {
+      console.error("Failed to call AI reply:", err);
+    } finally {
+      setAiTyping(false); // done typing
+    }
+  };
+
+  channel.on("message.new", handleMessage);
+  return () => channel.off("message.new", handleMessage);
+}, [channel]);
+
+
+
+useEffect(() => {
+  if (!channel) return;
+
+  const handleEvent = (e: any) => {
+    if (e.type === "typing.start" && e.user.id === "ai-assistant") {
+      setAiTyping(true);
+    }
+    if (e.type === "typing.stop" && e.user.id === "ai-assistant") {
+      setAiTyping(false);
+    }
+  };
+
+  channel.on(handleEvent);
+
+  return () => {
+    channel.off(handleEvent);
+  };
+}, [channel]);
+
+  // ---------------------------
+  // Video call
+  // ---------------------------
   const handleCall = () => {
     if (!channel) return;
     router.push(`/dashboard/video-call/${channel.id}`);
     setOpen(false);
   };
 
+  // ---------------------------
+  // Leave chat
+  // ---------------------------
   const handleLeaveChat = async () => {
-    if (!channel || !user?.userId) {
-      console.log("No active channel or user");
-      return;
-    }
+    if (!channel || !user?.userId) return;
 
     const confirmLeave = window.confirm("Are you sure you want to leave the chat?");
     if (!confirmLeave) return;
@@ -41,8 +110,8 @@ function Dashboard() {
       await channel.removeMembers([user.userId]);
       setActiveChannel(undefined);
       router.push("/dashboard");
-    } catch (error) {
-      console.error("Error leaving the chat", error);
+    } catch (err) {
+      console.error("Error leaving the chat", err);
     }
   };
 
@@ -68,7 +137,7 @@ function Dashboard() {
                     <VideoIcon className="w-4 h-4" />
                     Video Call
                   </Button>
-            
+
                   <Button
                     variant="outline"
                     className="flex items-center gap-2"
@@ -82,10 +151,11 @@ function Dashboard() {
 
               {/* Messages */}
               <div className="flex-1 overflow-y-auto px-2">
+                {aiTyping && <p className="text-sm text-gray-500">AI is typing...</p>}
                 <MessageList />
               </div>
 
-              {/* Input pinned bottom */}
+              {/* Input */}
               <div className="sticky bottom-0 w-full border-t p-2">
                 <MessageInput />
               </div>

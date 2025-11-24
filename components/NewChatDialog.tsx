@@ -12,7 +12,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import Image from "next/image";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { useCreateNewChat } from "@/app/hooks/useCreateNewChat";

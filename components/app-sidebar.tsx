@@ -19,6 +19,7 @@ import streamClient from "@/lib/stream";
 import useSWR from "swr";
 import { IProfileBase } from "@/mongodb/models/profile";
 import { useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { useCreateNewChat } from "@/hooks/useCreateNewChat";
 
 const fetcher = (url: string) =>
@@ -30,8 +31,7 @@ const fetcher = (url: string) =>
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { client, setActiveChannel } = useChatContext(); // ✅ stream-chat-react context
   const [loading, setLoading] = useState(false);
-  const createNewChat = useCreateNewChat();
-
+  const { user } = useUser();
   const { data: profile, error, isLoading } = useSWR<IProfileBase>(
     "/api/profile",
     fetcher
@@ -48,18 +48,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   // ✅ Create or toggle AI chat
-  const handleCreateAIChat = async () => {
-  try {
-    if (!user?.id) {
-      console.error("User ID is missing");
-      return;
-    }
+const handleCreateAIChat = async () => {
+  if (!user?.id) {
+    console.error("User ID is missing");
+    return;
+  }
 
-    const members = [user.id, ...selectedUsers.map((u) => u.userId)].filter(Boolean);
+  setLoading(true); // start loading
+
+  try {
+    const createNewChat = useCreateNewChat(); // <<< IMPORTANT
+
+    const members = [user.id, "ai-assistant"];
 
     const channel = await createNewChat({
       members,
-      createdBy: user.id
+      createdBy: user.id,
     });
 
     if (!channel) {
@@ -67,11 +71,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       return;
     }
 
+     await channel.watch({ presence: true });
+
     setActiveChannel(channel);
   } catch (error) {
     console.error("Error creating AI chat:", error);
+  } finally {
+    setLoading(false); // stop loading
   }
 };
+
 
 
   return (
@@ -125,7 +134,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               {loading ? "Chatting with AI..." : "Chat with AI"}
             </Button>
 
-            {!isLoading && streamClient.userID && (
+            {streamClient.userID && (
               <ChannelList
                 sort={sort}
                 filters={{

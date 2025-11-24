@@ -1,3 +1,4 @@
+// useCreateNewChat.ts
 "use client";
 
 import streamClient from "@/lib/stream";
