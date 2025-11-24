@@ -151,8 +151,8 @@ useEffect(() => {
 
               {/* Messages */}
               <div className="flex-1 overflow-y-auto px-2">
-                {aiTyping && <p className="text-sm text-gray-500">AI is typing...</p>}
                 <MessageList />
+                {aiTyping && <p className="text-sm text-gray-500">AI is typing...</p>}
               </div>
 
               {/* Input */}
