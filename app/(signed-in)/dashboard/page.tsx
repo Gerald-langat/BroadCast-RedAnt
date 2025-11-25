@@ -27,19 +27,20 @@ function Dashboard() {
   // AI Auto-Reply Logic
   // ---------------------------
 useEffect(() => {
-  if (!channel) return; // only attach if channel exists
+  if (!channel) return;
+
+  const channelName = channel.data?.id || channel.id;
+  const isAIChannel = channelName?.startsWith("ai-chat-");
+
+  if (!isAIChannel) return; // 🚫 stop AI interfering in human chats
 
   const handleMessage = async (event: any) => {
     const msg = event.message;
 
-    // Skip AI messages
     if (msg.user?.id === "ai-assistant") return;
 
-    const channelId = channel?.id;
-    if (!channelId) return console.error("No channel ID available");
-
     try {
-      setAiTyping(true); // AI is "thinking"
+      setAiTyping(true);
 
       const res = await fetch("/api/stream/ai-reply", {
         method: "POST",
@@ -47,25 +48,23 @@ useEffect(() => {
         body: JSON.stringify({
           type: "message.new",
           message: msg,
-          channel: { id: channelId },
+          channel: { id: channel.id },
         }),
       });
 
       const data = await res.json();
-      if (data?.success) {
-        console.log("AI reply sent:", data.reply);
-      }
-
+      console.log("AI reply:", data);
     } catch (err) {
-      console.error("Failed to call AI reply:", err);
+      console.error(err);
     } finally {
-      setAiTyping(false); // done typing
+      setAiTyping(false);
     }
   };
 
   channel.on("message.new", handleMessage);
   return () => channel.off("message.new", handleMessage);
 }, [channel]);
+
 
 
 
@@ -152,7 +151,7 @@ useEffect(() => {
               {/* Messages */}
               <div className="flex-1 overflow-y-auto px-2">
                 <MessageList />
-                {aiTyping && <p className="text-sm text-gray-500">AI is typing...</p>}
+                {aiTyping && <span className="loading loading-infinity loading-sm"></span> }
               </div>
 
               {/* Input */}
