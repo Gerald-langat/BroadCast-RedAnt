@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useCreateNewChat } from "@/hooks/useCreateNewChat";
 import { formatNumber } from "@/lib/formatnumber";
 import { IPostDocument } from "@/mongodb/models/marketpost";
 import { useUser } from "@clerk/nextjs";
@@ -33,29 +34,11 @@ export default function MarketFeed({ posts }: { posts: IPostDocument[] }) {
   const { client, setActiveChannel } = useChatContext();
   const router = useRouter();
   const {user} = useUser();
-   const closeRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
+    const createNewChat = useCreateNewChat();
   
 
-const handleStartChat = async (targetUserId: string) => {
-  // Make sure the chat client and user are loaded
-  if (!client || !client.user || !client.user.id) {
-    console.error("Chat client not ready or user not connected");
-    return;
-  }
-
-  try {
-    const newChannel = client.channel("messaging", undefined, {
-      members: [client.user.id, targetUserId],
-    });
-
-    await newChannel.watch();
-    setActiveChannel(newChannel);
-
-    router.push(`/dashboard/chat/${newChannel.id}`);
-  } catch (error) {
-    console.error("Error starting chat:", error);
-  }
-};
 
   // handle multiple files
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,6 +111,17 @@ const handleStartChat = async (targetUserId: string) => {
   }
 };
 
+const handleStartChat = async (otherUserId: string) => {
+  if (!user?.id) return;
+
+  const channel = await createNewChat({
+    members: [user.id, otherUserId],
+    createdBy: user.id,
+  });
+
+  setActiveChannel(channel);
+  setOpen(false);
+};
 
   
 
@@ -251,9 +245,13 @@ const handleStartChat = async (targetUserId: string) => {
               <h2 className="card-title">{post.productName}</h2>
               <p className="line-clamp-2 break-words">{post.description}</p>
               <div className="card-actions justify-between items-center mt-2 flex">
-                <Button onClick={() => handleStartChat(post.user.userId)} className="border-[1px]">
+                <Button
+                  onClick={() => handleStartChat(post.user.userId)}
+                  className="border-[1px]"
+                >
                   <MessageCircleMore size={16} /> Chat
                 </Button>
+
                       {user?.id === post.user.userId && (
                       <Trash2Icon className="text-red-600 cursor-pointer"  
                       onClick={() => {deletePostAction(String(post._id))}}/>
