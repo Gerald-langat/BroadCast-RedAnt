@@ -29,15 +29,15 @@ function Dashboard() {
 useEffect(() => {
   if (!channel) return;
 
-  // const channelName = channel.data?.id || channel.id;
-  // const isAIChannel = channelName?.startsWith("ai-chat-");
+  const channelName = channel.data?.id || channel.id;
+  const isAIChannel = channelName?.startsWith("ai-chat-");
 
-  // if (!isAIChannel) return; // 🚫 stop AI interfering in human chats
+  if (!isAIChannel) return; // 🚫 stop AI interfering in human chats
 
   const handleMessage = async (event: any) => {
     const msg = event.message;
 
-     if (msg.user?.id !== "ai-assistant") return;
+      if (msg.user?.id === "ai-assistant") return;
 
     try {
       setAiTyping(true);

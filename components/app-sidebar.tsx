@@ -47,18 +47,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     last_message_at: -1,
   };
 
-  // ✅ Create or toggle AI chat
+ const createNewChat = useCreateNewChat();
+
 const handleCreateAIChat = async () => {
   if (!user?.id) {
-    console.error("User ID is missing");
+    console.error("User ID missing");
     return;
   }
 
-  setLoading(true); // start loading
+  setLoading(true);
 
   try {
-    const createNewChat = useCreateNewChat(); // <<< IMPORTANT
-
+    const channelId = `ai-chat-${user.id}`;
     const members = [user.id, "ai-assistant"];
 
     const channel = await createNewChat({
@@ -67,19 +67,19 @@ const handleCreateAIChat = async () => {
     });
 
     if (!channel) {
-      console.error("Failed to create channel");
+      console.error("Failed to create AI chat");
       return;
     }
 
-     await channel.watch({ presence: true });
-
+    await channel.watch({ state: true }); // optional: presence: true
     setActiveChannel(channel);
-  } catch (error) {
-    console.error("Error creating AI chat:", error);
+  } catch (err) {
+    console.error("Error creating AI chat:", err);
   } finally {
-    setLoading(false); // stop loading
+    setLoading(false);
   }
 };
+
 
 
 
