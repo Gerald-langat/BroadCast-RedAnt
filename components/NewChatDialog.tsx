@@ -73,7 +73,6 @@ function NewChatDialog({ children }: { children: React.ReactNode }) {
   };
 
   
-
   const handleCreateChat = async () => {
     const totalMembers = selectedUsers.length + 1;
     const isGroupChat = totalMembers > 2;

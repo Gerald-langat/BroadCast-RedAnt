@@ -81,8 +81,6 @@ const handleCreateAIChat = async () => {
 };
 
 
-
-
   return (
     <Sidebar variant="floating" className="dark:bg-black">
       <SidebarHeader>

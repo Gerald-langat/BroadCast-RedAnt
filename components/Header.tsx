@@ -61,7 +61,6 @@ import { useProfile } from "./useProfile";
       />
 
       {/* Search */}
-      {/* SearchIcon */}
      <div className="flex-1 relative">
   <form className="flex items-center gap-2 p-2 rounded-md border shadow-sm mx-2 max-w-md">
     <SearchIcon className="h-4 text-gray-500 dark:text-gray-400" />

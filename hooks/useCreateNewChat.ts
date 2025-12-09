@@ -1,3 +1,4 @@
+// hooks\useCreateNewChat.ts
 import streamClient from "@/lib/stream";
 
 export const useCreateNewChat = () => {

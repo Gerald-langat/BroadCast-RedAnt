@@ -32,10 +32,8 @@ export default function MarketFeed({ posts }: { posts: IPostDocument[] }) {
   const [loadingStatus, setLoadingStatus] = useState(false);
   const ref = useRef<HTMLFormElement>(null);
   const { client, setActiveChannel } = useChatContext();
-  const router = useRouter();
   const {user} = useUser();
   const closeRef = useRef<HTMLButtonElement>(null);
-  const [open, setOpen] = useState(false);
     const createNewChat = useCreateNewChat();
   
 
@@ -120,10 +118,8 @@ const handleStartChat = async (otherUserId: string) => {
   });
 
   setActiveChannel(channel);
-  setOpen(false);
 };
 
-  
 
   return (
     <div>
@@ -251,7 +247,6 @@ const handleStartChat = async (otherUserId: string) => {
                 >
                   <MessageCircleMore size={16} /> Chat
                 </Button>
-
                       {user?.id === post.user.userId && (
                       <Trash2Icon className="text-red-600 cursor-pointer"  
                       onClick={() => {deletePostAction(String(post._id))}}/>
