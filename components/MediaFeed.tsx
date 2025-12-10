@@ -11,7 +11,7 @@ if(posts.length === 0) {
 }
 
   return (
-    <div className="pb-20 max-w-4xl grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="pb-20 max-w-4xl grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
   {posts
     .filter((p) => p.scope === scope)
     .filter((p) => (p.imageUrls && p.imageUrls.length > 0) || p.videoUrl)

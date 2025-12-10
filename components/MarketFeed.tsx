@@ -31,11 +31,10 @@ export default function MarketFeed({ posts }: { posts: IPostDocument[] }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
   const ref = useRef<HTMLFormElement>(null);
-  const { client, setActiveChannel } = useChatContext();
   const {user} = useUser();
   const closeRef = useRef<HTMLButtonElement>(null);
-    const createNewChat = useCreateNewChat();
-  
+  const router = useRouter();
+
 
 
   // handle multiple files
@@ -108,18 +107,6 @@ export default function MarketFeed({ posts }: { posts: IPostDocument[] }) {
     setLoadingStatus(false);
   }
 };
-
-const handleStartChat = async (otherUserId: string) => {
-  if (!user?.id) return;
-
-  const channel = await createNewChat({
-    members: [user.id, otherUserId],
-    createdBy: user.id,
-  });
-
-  setActiveChannel(channel);
-};
-
 
   return (
     <div>
@@ -241,12 +228,14 @@ const handleStartChat = async (otherUserId: string) => {
               <h2 className="card-title">{post.productName}</h2>
               <p className="line-clamp-2 break-words">{post.description}</p>
               <div className="card-actions justify-between items-center mt-2 flex">
+                {user?.id !== post.user.userId && (
                 <Button
-                  onClick={() => handleStartChat(post.user.userId)}
+                  onClick={() => router.push("/dashboard")}
                   className="border-[1px]"
                 >
                   <MessageCircleMore size={16} /> Chat
                 </Button>
+                )}
                       {user?.id === post.user.userId && (
                       <Trash2Icon className="text-red-600 cursor-pointer"  
                       onClick={() => {deletePostAction(String(post._id))}}/>

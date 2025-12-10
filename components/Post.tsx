@@ -115,7 +115,7 @@ function Post({ post }: { post: IPostDocument }) {
                 />
                 </Link>
             ) : post.imageUrls && post.imageUrls.length > 1 ? (
-              <Link href={`fullMedia/${String(post._id)}`} className="grid grid-cols-2  gap-1">
+              <Link href={`fullMedia/${String(post._id)}`} className="grid grid-cols-2 gap-1">
                 {post.imageUrls.map((url: string, idx: number) => (
                   <img
                     key={idx}
