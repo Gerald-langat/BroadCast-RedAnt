@@ -105,7 +105,7 @@ useEffect(() => {
             <div className="flex flex-col min-h-screen">
               {/* Header */}
               <div className="flex items-center justify-between p-2 border-b">
-                
+     
                   <div>🤖ai assistant</div>
              
                 <div className="flex space-x-2 items-center">

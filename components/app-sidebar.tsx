@@ -54,16 +54,11 @@ const { channel: activeChannel } = useChatContext();
       await fetch("/api/stream/upsert-ai", { method: "POST" });
 
       // Get or create AI channel
-      const aiChannel = client.channel("messaging", `ai-chat-${user.id}`, {
-        name: "AI Assistant",
-        members: [user.id, "ai-assistant"],
-      });
+     const aiChannel = client.channel("messaging", `ai-chat-${user.id}`);
       await aiChannel.watch();
-
       setActiveChannel(aiChannel);
-
-      // Navigate to AI page
       router.push("/dashboard/ai-page");
+
     } catch (err) {
       console.error("AI chat creation failed:", err);
     } finally {
