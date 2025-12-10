@@ -19,7 +19,6 @@ import {
 function Dashboard() {
   const router = useRouter();
   const { channel, setActiveChannel } = useChatContext();
-  const { setOpen } = useSidebar();
   const { user } = useStreamUser();
   const [aiTyping, setAiTyping] = useState(false);
 
@@ -106,11 +105,9 @@ useEffect(() => {
             <div className="flex flex-col min-h-screen">
               {/* Header */}
               <div className="flex items-center justify-between p-2 border-b">
-                {channel.data?.member_count === 1 ? (
-                  <ChannelHeader title="Everyone has left this chat!" />
-                ) : (
-                  <ChannelHeader />
-                )}
+                
+                  <div>🤖ai assistant</div>
+             
                 <div className="flex space-x-2 items-center">
                   <Button
                     variant="outline"

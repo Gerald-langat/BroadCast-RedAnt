@@ -1,22 +1,17 @@
 import { StreamChat } from "stream-chat";
-import { NextResponse } from "next/server";
 
 export async function POST() {
-  try {
-    const client = StreamChat.getInstance(
-      process.env.NEXT_PUBLIC_STREAM_API_KEY!,
-      process.env.STREAM_API_SECRET_KEY!
-    );
+  const serverClient = StreamChat.getInstance(
+    process.env.NEXT_PUBLIC_STREAM_KEY!,
+    process.env.STREAM_SECRET! // SERVER SECRET
+  );
 
-    await client.upsertUser({
-      id: "ai-assistant",
-      name: "AI Assistant",
-      image: "https://cdn-icons-png.flaticon.com/512/4712/4712104.png",
-    });
+  await serverClient.upsertUser({
+    id: "ai-assistant",
+    name: "AI Assistant",
+    image: "https://i.imgur.com/IC7Zz11.png",
+    role: "user"
+  });
 
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error("AI user upsert error:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-  }
+  return Response.json({ success: true });
 }
