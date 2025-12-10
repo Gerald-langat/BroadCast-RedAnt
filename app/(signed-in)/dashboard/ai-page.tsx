@@ -21,16 +21,64 @@ function Dashboard() {
   const { channel, setActiveChannel } = useChatContext();
   const { setOpen } = useSidebar();
   const { user } = useStreamUser();
-
+  const [aiTyping, setAiTyping] = useState(false);
 
   // ---------------------------
-  // Video call
+  // AI Auto-Reply Logic
   // ---------------------------
-  const handleCall = () => {
-    if (!channel) return;
-    router.push(`/dashboard/video-call/${channel.id}`);
-    setOpen(false);
+useEffect(() => {
+  if (!channel) return;
+
+  const handleMessage = async (event: any) => {
+    const msg = event.message;
+
+
+    try {
+      setAiTyping(true);
+
+      const res = await fetch("/api/stream/ai-reply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "message.new",
+          message: msg,
+          channel: { id: channel.id },
+        }),
+      });
+
+      const data = await res.json();
+      console.log("AI reply:", data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAiTyping(false);
+    }
   };
+
+  channel.on("message.new", handleMessage);
+  return () => channel.off("message.new", handleMessage);
+}, [channel]);
+
+
+useEffect(() => {
+  if (!channel) return;
+
+  const handleEvent = (e: any) => {
+    if (e.type === "typing.start" && e.user.id === "ai-assistant") {
+      setAiTyping(true);
+    }
+    if (e.type === "typing.stop" && e.user.id === "ai-assistant") {
+      setAiTyping(false);
+    }
+  };
+
+  channel.on(handleEvent);
+
+  return () => {
+    channel.off(handleEvent);
+  };
+}, [channel]);
+
 
   // ---------------------------
   // Leave chat
@@ -67,15 +115,6 @@ function Dashboard() {
                   <Button
                     variant="outline"
                     className="flex items-center gap-2"
-                    onClick={handleCall}
-                  >
-                    <VideoIcon className="w-4 h-4" />
-                    Video Call
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    className="flex items-center gap-2"
                     onClick={handleLeaveChat}
                   >
                     <XIcon className="text-red-500 hover:text-red-600 hover:bg-red-50" />
@@ -87,6 +126,7 @@ function Dashboard() {
               {/* Messages */}
               <div className="flex-1 overflow-y-auto px-2">
                 <MessageList />
+                {aiTyping && <span className="loading loading-infinity loading-sm"></span> }
               </div>
 
               {/* Input */}
