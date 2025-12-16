@@ -45,7 +45,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <ClerkProvider>
             <ScopeProvider>
               <FollowProvider>
-                <Toaster position="top-center" />
+                 <ThemeProvider
+                    attribute="class"
+                    defaultTheme="system"
+                    enableSystem
+                    disableTransitionOnChange
+                  >
+                    <Toaster position="top-center" />
               <div>
                 <ConditionalHeader />
                 <main className="max-w-6xl mx-auto flex flex-col">
@@ -53,6 +59,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </main>
               <HomeClient user={safeUser} posts={posts} users={safeUsers} />
               </div>
+               </ThemeProvider>
+                
               </FollowProvider>
             </ScopeProvider>
         </ClerkProvider>
