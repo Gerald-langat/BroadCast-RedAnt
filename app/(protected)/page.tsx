@@ -12,7 +12,7 @@ import Members from "@/components/Members";
 import { Menu } from "lucide-react"; 
 import { Sidebar } from "@/components/ui/sidebar"; 
 import PostFeed from "@/components/PostFeed";
-import HomeClient from "./homeClient";
+import HomeClient from "../homeClient";
 
 export const revalidate = 0; 
 

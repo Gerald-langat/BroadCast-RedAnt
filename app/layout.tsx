@@ -1,17 +1,7 @@
-import type { Metadata } from "next";
-import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Toaster } from "@/components/ui/sonner";
-import { ScopeProvider } from "./context/ScopeContext";
+import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import ConditionalHeader from "@/components/ConditionalHeader";
-import { FollowProvider } from "./context/followContext";
-import connectDB from "@/mongodb/db";
-import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import { Profile } from "@/mongodb/models/profile";
-import { Post } from "@/mongodb/models/post";
-import HomeClient from "./homeClient";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Broadcast",
@@ -23,47 +13,24 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  await connectDB(); // ✅ Await currentUser properly 
-    const user = await currentUser(); 
-    // Handle case when no Clerk user is found (unauthenticated)\
-    if (!user) { redirect("/auth"); } 
-    // ✅ Fetch profile from MongoDB using Clerk user ID 
-    const userDB = await Profile.getProfile(user?.id); 
-    const safeUser = userDB ? JSON.parse(JSON.stringify(userDB)) : null;
-    const users = await Profile.find().lean(); 
-    // 🔑 convert docs to plain objects 
-    const safeUsers = JSON.parse(JSON.stringify(users)); 
-    // ensure no non-serializable values 
-    if (!safeUser) { redirect("/auth"); } 
-    // ✅ Fetch all posts 
-     const posts = await Post.getAllPosts(); 
-
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen flex flex-col">
-        <ClerkProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <ScopeProvider>
-              <FollowProvider>
-                <Toaster position="top-center" />
-              <div>
-                <ConditionalHeader />
-                <main className="max-w-6xl mx-auto flex flex-col">
-                  {children}
-                </main>
-              <HomeClient user={safeUser} posts={posts} users={safeUsers} />
-              </div>
-              </FollowProvider>
-            </ScopeProvider>
-          </ThemeProvider>
-        </ClerkProvider>
-      </body>
-    </html>
-  );
+  <ClerkProvider>
+        <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+              >
+          <html lang="en" suppressHydrationWarning>
+            <body>{children}</body>
+          </html>      
+         </ThemeProvider>
+  </ClerkProvider>
+
+  )
 }

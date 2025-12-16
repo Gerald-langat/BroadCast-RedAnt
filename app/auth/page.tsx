@@ -1,3 +1,4 @@
+// app/auth/page.tsx
 "use client";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -6,11 +7,10 @@ import { ImageIcon } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import z from "zod";
 import countyData from "../../counties.json";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import createProfileAction from "../actions/profile";
 import { Toaster } from "sonner";
-import { useScope } from "../context/ScopeContext";
+import createProfileAction from "../actions/profile";
 
 const inputSchema = z.object({
   firstName: z.string().nonempty("First name is required"),
@@ -36,7 +36,6 @@ type County = { name: string; countyCode: number; constituencies: Constituency[]
 
 function FormPage() {
   // Dropdown states
-  const { setScope, setScopeName } = useScope();
   const [Category, setSelectedCategory] = useState<string>("Select Category");
   const [County, setSelectedCounty] = useState<string>("Select County");
   const [Constituency, setSelectedConstituency] = useState<string>("Select Constituency");
@@ -55,12 +54,12 @@ function FormPage() {
 
   // checkbox
 const [acceptedTerms, setAcceptedTerms] = useState(false);
- // clerk
-const user = useUser();
-  const router = useRouter();
+
   // profile
   const [file, setFile] = useState<File | null>(null);
 
+const router = useRouter();
+const user = useUser();
 
 
   // Load counties
@@ -137,13 +136,8 @@ const user = useUser();
         nickName: form.nickName.value,
         Category,
         County,
-        countyName:
-          counties.find((c) => c.name === County)?.name || null,
         Constituency,
-        constituencyName:
-          constituencies.find((c) => c.name === Constituency)?.name || null,
         Ward,
-        wardName: wards.find((w) => w.name === Ward)?.name || null,
         acceptedTerms,
         imageUrl,
       };
@@ -164,12 +158,6 @@ const user = useUser();
       setLoading(false); // ✅ End loading
     }
   };
-
-    useEffect(() => {
-    if (!user) {
-      redirect("/signin?redirect_url=/auth");
-    }
-  }, [user]);
 
   return (
     <div>
@@ -265,8 +253,6 @@ const user = useUser();
                     key={`{county.countyCode}-${county.name}`}
                     onClick={() => {
                       setSelectedCounty(county.name);
-                      setScope(county.name); // 👈 set scope level = County
-                      setScopeName(county.name); // 👈 numeric code
                       setSelectedConstituency("Select Constituency");
                       setSelectedWard("Select Ward");
                       setOpen(false);
@@ -288,8 +274,6 @@ const user = useUser();
                     key={c.code}
                     onClick={() => {
                         setSelectedConstituency(c.name);
-                        setScope(c.name); // 👈 constituency name as scope
-                        setScopeName(c.name); // 👈 constituency numeric code
                         setSelectedWard("Select Ward");
                         setOpen(false);
                       }}
@@ -311,8 +295,6 @@ const user = useUser();
                     key={w.code}
                     onClick={() => {
                         setSelectedWard(w.name);
-                        setScope(w.name); // 👈 ward name as scope
-                        setScopeName(w.name); // 👈 ward numeric code
                         setOpen(false);
                       }}
 

@@ -7,11 +7,8 @@ export interface IProfileBase {
   lastName: string;
   nickName: string;
   county?: string;
-  countyName?: string;
   constituency?: string;
-  constituencyName?: string;
   ward?: string;
-  wardName?: string;
   category?: string;
   userImg?: string;
   acceptedTerms?: boolean;
@@ -35,11 +32,8 @@ const ProfileSchema = new Schema<IProfileBase, IProfileModel, IProfileMethods>(
     lastName: { type: String, required: true },
     nickName: { type: String, required: true },
     county: { type: String },
-    countyName: { type: String },
     constituency: { type: String },
-    constituencyName: { type: String },
     ward: { type: String },
-    wardName: { type: String },
     category: { type: String },
     acceptedTerms: { type: Boolean, required: true },
     isArchived: { type: Boolean, default: false },
@@ -73,5 +67,5 @@ delete mongoose.models.Profile;
 
 // ✅ Correctly type the model export
 export const Profile: IProfileModel =
-  (mongoose.models.Profile as unknown as IProfileModel) ||
-  mongoose.model<IProfileBase, IProfileModel>("Profile", ProfileSchema);
+  (mongoose.models.User as unknown as IProfileModel) ||
+  mongoose.model<IProfileBase, IProfileModel>("User", ProfileSchema);
