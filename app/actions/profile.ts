@@ -12,10 +12,10 @@ export default async function createProfileAction({
   Category,
   County,
   Constituency,
-  countyCode,
-  constituencyCode,
+  countyName,
+  constituencyName,
   Ward,
-  wardCode,
+  wardName,
   imageUrl,
   acceptedTerms,
 }: {
@@ -25,10 +25,10 @@ export default async function createProfileAction({
   Category: string;
   County: string;
   Constituency: string;
-  countyCode: number | null;
-  constituencyCode: number | null;
+  countyName: string | null;
+  constituencyName: string | null;
   Ward: string;
-  wardCode?: number | null;
+  wardName?: string | null;
   imageUrl?: string;
   acceptedTerms: boolean;
 }) {
@@ -48,11 +48,11 @@ export default async function createProfileAction({
     nickName,
     category: Category,
     county: County,    
-    countyCode,                 // 👈 now matches schema         
+    countyName,                 // 👈 now matches schema         
     constituency: Constituency,
-    constituencyCode,           // 👈 now matches schema 
+    constituencyName,           // 👈 now matches schema 
     ward: Ward,  
-    wardCode,               
+    wardName,               
     userImg: imageUrl,
     acceptedTerms,              // 👈 now matches schema
   });

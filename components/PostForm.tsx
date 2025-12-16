@@ -34,7 +34,7 @@ import { IPostBase } from "@/mongodb/models/statusPost";
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileStatusInputRef = useRef<HTMLInputElement>(null);
   const ref = useRef<HTMLFormElement>(null);
-  const { scopeCode, scope } = useScope();
+  const { scopeName, scope } = useScope();
   const [sFiles, setSFiles] = useState<File[]>([]);
   const [statusText, setStatusText] = useState("");
   const [showPicker, setShowPicker] = useState(false);
@@ -81,12 +81,12 @@ const handleSubmit = async (
   submitAction: (
     cast: string,
     scope: string,
-    scopeCode: number,
+    scopeName: string | undefined,
     imageUrls?: string[],
     videoUrl?: string
   ) => Promise<any>,
   selectedScope?: string,
-  selectedScopeCode?: number,
+  selectedScopeName?: string,
   onSuccess?: (newCast: any) => void
 ) => {
   try {
@@ -121,9 +121,9 @@ const handleSubmit = async (
 
     // Fallback to context values if none selected
     const castScope = selectedScope ?? scope;
-    const castScopeCode = selectedScopeCode ?? scopeCode;
+    const castScopeName = selectedScopeName ?? scopeName;
 
-    const newCast = await submitAction(castText, castScope, castScopeCode, imageUrls, videoUrl);
+    const newCast = await submitAction(castText, castScope, castScopeName, imageUrls, videoUrl);
 
 
     onSuccess?.(newCast);
@@ -445,7 +445,7 @@ const handleSubmitStatus = async (
                             handleSubmit(
                               submitCastAction,
                               user?.county,
-                              user?.countyCode
+                              
                             )
                           }
                         >
@@ -477,7 +477,7 @@ const handleSubmitStatus = async (
                         handleSubmit(
                           submitCastAction,
                           user?.constituency,
-                          user?.constituencyCode
+                          user?.constituencyName
                         )
                       }
                     >
@@ -509,7 +509,7 @@ const handleSubmitStatus = async (
                           handleSubmit(
                             submitCastAction,
                             user?.ward,
-                            user?.wardCode
+                            user?.wardName
                           )
                         }
                       >
@@ -541,7 +541,7 @@ const handleSubmitStatus = async (
                             handleSubmit(
                               submitCastAction,
                               scope ?? "Home",
-                              scopeCode ?? 0
+                              scopeName ?? "Home"
                             )
                           }
                         >

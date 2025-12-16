@@ -8,7 +8,7 @@ import { currentUser } from "@clerk/nextjs/server";
 export const submitCastAction = async (
   cast: string,
   scope:  string,
-  scopeCode: number,
+  scopeName: string | undefined,
   imageUrls?: string[],
   videoUrl?: string,  
 ) => {
@@ -42,7 +42,7 @@ export const submitCastAction = async (
       imageUrls: imageUrls && imageUrls.length > 0 ? imageUrls : [], // array
       videoUrl: videoUrl || null,
       scope: scope,
-      scopeCode: scopeCode || 0, // default to 0 if not provided
+      scopeName: scopeName || null, // default to null if not provided
     }); 
     // Revalidate home path
  revalidatePath("/");

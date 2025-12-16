@@ -7,7 +7,7 @@ export interface IPostBase {
   user: IProfileBase;
   cast: string;
   scope: string;
-  scopeCode: number;
+  scopeName: string;
   category: string;
   imageUrls: string[] | [];
   comments?: IComment[];
@@ -60,7 +60,7 @@ const PostSchema = new Schema<IPostDocument>(
     },
     cast: { type: String, required: true },
     scope: { type: String, required: true },
-    scopeCode: { type: Number, required: true, default: 0 }, // 1-Public, 2-Connections, 3-Only Me
+    scopeName: { type: String, required: true, default: "Home" }, // 1-Public, 2-Connections, 3-Only Me
 
       imageUrls: { type: [String], default: [] },
     videoUrl: { type: String, default: null },

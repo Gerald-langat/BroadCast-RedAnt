@@ -69,7 +69,7 @@ function Post({ post }: { post: IPostDocument }) {
             <p className="text-xs text-gray-400">
               @{post.user.nickName}
             </p>
-           <p className="text-gray-600 text-xs">#{post.scope !== "Home" && post.scope}</p>
+           <p className="text-gray-600 text-xs">#{post.scopeName !== "Home" && post.scopeName}</p>
           </div>
 
             <p className="text-xs text-gray-400">

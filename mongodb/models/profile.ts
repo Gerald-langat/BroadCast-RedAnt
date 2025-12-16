@@ -7,11 +7,11 @@ export interface IProfileBase {
   lastName: string;
   nickName: string;
   county?: string;
-  countyCode?: number;
+  countyName?: string;
   constituency?: string;
-  constituencyCode?: number;
+  constituencyName?: string;
   ward?: string;
-  wardCode?: number;
+  wardName?: string;
   category?: string;
   userImg?: string;
   acceptedTerms?: boolean;
@@ -35,11 +35,11 @@ const ProfileSchema = new Schema<IProfileBase, IProfileModel, IProfileMethods>(
     lastName: { type: String, required: true },
     nickName: { type: String, required: true },
     county: { type: String },
-    countyCode: { type: Number },
+    countyName: { type: String },
     constituency: { type: String },
-    constituencyCode: { type: Number },
+    constituencyName: { type: String },
     ward: { type: String },
-    wardCode: { type: Number },
+    wardName: { type: String },
     category: { type: String },
     acceptedTerms: { type: Boolean, required: true },
     isArchived: { type: Boolean, default: false },

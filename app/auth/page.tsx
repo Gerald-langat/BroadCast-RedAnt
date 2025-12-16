@@ -36,7 +36,7 @@ type County = { name: string; countyCode: number; constituencies: Constituency[]
 
 function FormPage() {
   // Dropdown states
-  const { setScope, setScopeCode } = useScope();
+  const { setScope, setScopeName } = useScope();
   const [Category, setSelectedCategory] = useState<string>("Select Category");
   const [County, setSelectedCounty] = useState<string>("Select County");
   const [Constituency, setSelectedConstituency] = useState<string>("Select Constituency");
@@ -137,13 +137,13 @@ const user = useUser();
         nickName: form.nickName.value,
         Category,
         County,
-        countyCode:
-          counties.find((c) => c.name === County)?.countyCode || null,
+        countyName:
+          counties.find((c) => c.name === County)?.name || null,
         Constituency,
-        constituencyCode:
-          constituencies.find((c) => c.name === Constituency)?.code || null,
+        constituencyName:
+          constituencies.find((c) => c.name === Constituency)?.name || null,
         Ward,
-        wardCode: wards.find((w) => w.name === Ward)?.code || null,
+        wardName: wards.find((w) => w.name === Ward)?.name || null,
         acceptedTerms,
         imageUrl,
       };
@@ -266,7 +266,7 @@ const user = useUser();
                     onClick={() => {
                       setSelectedCounty(county.name);
                       setScope(county.name); // 👈 set scope level = County
-                      setScopeCode(county.countyCode); // 👈 numeric code
+                      setScopeName(county.name); // 👈 numeric code
                       setSelectedConstituency("Select Constituency");
                       setSelectedWard("Select Ward");
                       setOpen(false);
@@ -289,7 +289,7 @@ const user = useUser();
                     onClick={() => {
                         setSelectedConstituency(c.name);
                         setScope(c.name); // 👈 constituency name as scope
-                        setScopeCode(c.code); // 👈 constituency numeric code
+                        setScopeName(c.name); // 👈 constituency numeric code
                         setSelectedWard("Select Ward");
                         setOpen(false);
                       }}
@@ -312,7 +312,7 @@ const user = useUser();
                     onClick={() => {
                         setSelectedWard(w.name);
                         setScope(w.name); // 👈 ward name as scope
-                        setScopeCode(w.code); // 👈 ward numeric code
+                        setScopeName(w.name); // 👈 ward numeric code
                         setOpen(false);
                       }}
 
