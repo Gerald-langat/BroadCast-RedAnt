@@ -23,40 +23,45 @@ function PostFeed({ posts }: { posts: IPostDocument[] }) {
 
     // ✅ Filtering logic
     return posts.filter((p) => {
-      if (scopeName === "Home") return true;
+  if (scopeName === "Home") return true;
 
-      // 🏛 County level
-      if (currentCounty) {
-        const constituencyCodes =
-          currentCounty.constituencies?.map((ct: any) => ct.constituency) || [];
-        const wardCodes =
-          currentCounty.constituencies?.flatMap(
-            (ct: any) => ct.wards?.map((w: any) => w.ward) || []
-          ) || [];
-        return (
-          p.currentLevel === currentCounty.county ||
-          constituencyCodes.includes(p.currentLevel) ||
-          wardCodes.includes(p.currentLevel)
-        );
-      }
+  // 🏛 COUNTY SELECTED
+  if (currentCounty) {
+    return (
+      (p.currentLevel === "county" &&
+        p.currentValue === currentCounty.county) ||
+      (p.currentLevel === "constituency" &&
+        currentCounty.constituencies.some(
+          (ct: any) => ct.constituency === p.currentValue
+        )) ||
+      (p.currentLevel === "ward" &&
+        currentCounty.constituencies.some((ct: any) =>
+          ct.wards.some((w: any) => w.ward === p.currentValue)
+        ))
+    );
+  }
 
-      // 🏘 Constituency level
-      if (currentConstituency) {
-        const wardCodes =
-          currentConstituency.wards?.map((w: any) => w.ward) || [];
-        return (
-          p.currentLevel === currentConstituency.constituency ||
-          wardCodes.includes(p.currentLevel)
-        );
-      }
+  // 🏘 CONSTITUENCY SELECTED
+  if (currentConstituency) {
+    return (
+      (p.currentLevel === "constituency" &&
+        p.currentValue === currentConstituency.constituency) ||
+      (p.currentLevel === "ward" &&
+        currentConstituency.wards.some(
+          (w: any) => w.ward === p.currentValue
+        ))
+    );
+  }
 
-      // 🧱 Ward level
-      if (currentWard) {
-        return p.currentLevel === scopeName;
-      }
+  // 🧱 WARD SELECTED
+  if (currentWard) {
+    return p.currentLevel === "ward" && p.currentValue === currentWard.ward;
+  }
 
-      return false;
-    });
+  return false;
+});
+
+
   }, [posts, scopeName]);
 
   return (
