@@ -13,23 +13,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+
   return (
   <ClerkProvider>
-        <ThemeProvider
-                attribute="class"
-                defaultTheme="system"
-                enableSystem
-                disableTransitionOnChange
-              >
+       
           <html lang="en" suppressHydrationWarning>
             <body>{children}</body>
           </html>      
-         </ThemeProvider>
   </ClerkProvider>
 
   )

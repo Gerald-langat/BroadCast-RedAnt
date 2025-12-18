@@ -41,8 +41,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen flex flex-col">
-        <ClerkProvider>
+      <body>
             <ScopeProvider>
               <FollowProvider>
                  <ThemeProvider
@@ -52,7 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     disableTransitionOnChange
                   >
                     <Toaster position="top-center" />
-              <div>
+              <div className="min-h-screen flex flex-col">
                 <ConditionalHeader />
                 <main className="max-w-6xl mx-auto flex flex-col">
                   {children}
@@ -63,7 +62,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 
               </FollowProvider>
             </ScopeProvider>
-        </ClerkProvider>
       </body>
     </html>
   );

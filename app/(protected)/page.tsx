@@ -9,8 +9,6 @@ import { Profile } from "@/mongodb/models/profile";
 import { currentUser } from "@clerk/nextjs/server"; 
 import { redirect } from "next/navigation"; 
 import Members from "@/components/Members"; 
-import { Menu } from "lucide-react"; 
-import { Sidebar } from "@/components/ui/sidebar"; 
 import PostFeed from "@/components/PostFeed";
 import HomeClient from "../homeClient";
 
@@ -23,7 +21,8 @@ export default async function Home() {
   if (!user) { redirect("/auth"); } 
   // ✅ Fetch profile from MongoDB using Clerk user ID 
   const userDB = await Profile.getProfile(user.id); 
-  const safeUser = userDB ? JSON.parse(JSON.stringify(userDB)) : null; const users = await Profile.find().lean(); 
+  const safeUser = userDB ? JSON.parse(JSON.stringify(userDB)) : null; 
+  const users = await Profile.find().lean(); 
   // 🔑 convert docs to plain objects 
   const safeUsers = JSON.parse(JSON.stringify(users)); 
   // ensure no non-serializable values 
