@@ -34,9 +34,9 @@ function PostFeed({ posts }: { posts: IPostDocument[] }) {
             (ct: any) => ct.wards?.map((w: any) => w.ward) || []
           ) || [];
         return (
-          p.scopeName === currentCounty.county ||
-          constituencyCodes.includes(p.scopeName) ||
-          wardCodes.includes(p.scopeName)
+          p.currentLevel === currentCounty.county ||
+          constituencyCodes.includes(p.currentLevel) ||
+          wardCodes.includes(p.currentLevel)
         );
       }
 
@@ -45,14 +45,14 @@ function PostFeed({ posts }: { posts: IPostDocument[] }) {
         const wardCodes =
           currentConstituency.wards?.map((w: any) => w.ward) || [];
         return (
-          p.scopeName === currentConstituency.constituency ||
-          wardCodes.includes(p.scopeName)
+          p.currentLevel === currentConstituency.constituency ||
+          wardCodes.includes(p.currentLevel)
         );
       }
 
       // 🧱 Ward level
       if (currentWard) {
-        return p.scopeName === scopeName;
+        return p.currentLevel === scopeName;
       }
 
       return false;

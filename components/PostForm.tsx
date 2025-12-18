@@ -445,6 +445,7 @@ const handleSubmitStatus = async (
                             handleSubmit(
                               submitCastAction,
                               user?.county,
+                              scope
                               
                             )
                           }
@@ -477,7 +478,7 @@ const handleSubmitStatus = async (
                         handleSubmit(
                           submitCastAction,
                           user?.constituency,
-                          user?.constituencyName
+                          scope
                         )
                       }
                     >
@@ -509,7 +510,7 @@ const handleSubmitStatus = async (
                           handleSubmit(
                             submitCastAction,
                             user?.ward,
-                            user?.wardName
+                            scope
                           )
                         }
                       >

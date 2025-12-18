@@ -119,17 +119,17 @@ import { useProfile } from "./useProfile";
           <p>Home</p>
         </div>
 
-        <div onClick={() => {setScope(profile?.county ?? "Home"); setScopeName(profile?.county ?? "Home")}} className="icon hidden md:flex cursor-pointer">
+        <div onClick={() => {setScope("County"); setScopeName(profile?.county ?? "Home")}} className="icon hidden md:flex cursor-pointer">
           <Map className="h-5" />
           <p>County</p>
         </div>
 
-        <div onClick={() =>{ setScope(profile?.constituency ?? "Home"); setScopeName(profile?.constituency ?? "Home")}} className="icon hidden md:flex cursor-pointer">
+        <div onClick={() =>{ setScope("Constituency"); setScopeName(profile?.constituency ?? "Home")}} className="icon hidden md:flex cursor-pointer">
           <Flag className="h-5" />
           <p>Constituency</p>
         </div>
 
-        <div onClick={() => { setScope(profile?.ward ?? "Home"); setScopeName(profile?.ward ?? "Home")}} className="icon cursor-pointer">
+        <div onClick={() => { setScope("Ward"); setScopeName(profile?.ward ?? "Home")}} className="icon cursor-pointer">
           <MapPin className="h-5" />
           <p>Ward</p>
         </div>        

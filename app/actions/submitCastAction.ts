@@ -41,8 +41,8 @@ export const submitCastAction = async (
       cast,
       imageUrls: imageUrls && imageUrls.length > 0 ? imageUrls : [], // array
       videoUrl: videoUrl || null,
-      scope: scope,
-      scopeName: scopeName || null, // default to null if not provided
+       currentLevel: scope,
+      currentValue: scopeName ?? "Home", // ✅ NEVER null
     }); 
     // Revalidate home path
  revalidatePath("/");

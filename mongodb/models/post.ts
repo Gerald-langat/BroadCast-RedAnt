@@ -6,8 +6,8 @@ import { IProfileBase } from "./profile";
 export interface IPostBase {
   user: IProfileBase;
   cast: string;
-  scope: string;
-  scopeName: string;
+  currentLevel: string;
+  currentValue: string;
   category: string;
   imageUrls: string[] | [];
   comments?: IComment[];
@@ -59,8 +59,8 @@ const PostSchema = new Schema<IPostDocument>(
       userImg: { type: String }
     },
     cast: { type: String, required: true },
-    scope: { type: String, required: true },
-    scopeName: { type: String, required: true, default: "Home" }, // 1-Public, 2-Connections, 3-Only Me
+    currentLevel: { type: String, required: true },
+    currentValue: { type: String, required: true, default: "Home" }, // 1-Public, 2-Connections, 3-Only Me
 
       imageUrls: { type: [String], default: [] },
     videoUrl: { type: String, default: null },
