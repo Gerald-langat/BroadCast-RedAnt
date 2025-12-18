@@ -13,7 +13,7 @@ import { AlertTriangle, Video } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
-import { UserProfile } from "@/components/UserSyncWrapper";
+import { IProfileBase } from "@/mongodb/models/profile";
 
 if (!process.env.NEXT_PUBLIC_STREAM_API_KEY) {
   throw new Error("NEXT_PUBLIC_STREAM_API_KEY is not set");
@@ -25,13 +25,13 @@ function Layout({ children }: { children: React.ReactNode }) {
   const [call, setCall] = useState<Call | null>(null);
   const [client, setClient] = useState<StreamVideoClient | null>(null);
   const [error, setError] = useState<string | null>(null);
- const [user, setUser] = useState<UserProfile | null>(null);
+ const [user, setUser] = useState<IProfileBase | null>(null);
 
   const fetchUser = useCallback(async () => {
     try {
       const res = await fetch("/api/profile");
       if (!res.ok) throw new Error("Failed to fetch user");
-      const data: UserProfile = await res.json();
+      const data: IProfileBase = await res.json();
       setUser(data);
     } catch (err) {
       console.error(err);
@@ -48,7 +48,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         user.firstName,
         nickname: 
         user.nickName,
-      image: user.imageUrl || "",
+      image: user.userImg || "",
       type: "authenticated" as const,
     };
   }, [user]);
