@@ -95,5 +95,12 @@ export const FollowProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-const followContext = () => useContext(FollowCtx);
-export default followContext;
+export const useFollowContext = () => {
+  const context = useContext(FollowCtx);
+
+  if (!context) {
+    throw new Error("useFollowContext must be used within a FollowProvider");
+  }
+
+  return context;
+};

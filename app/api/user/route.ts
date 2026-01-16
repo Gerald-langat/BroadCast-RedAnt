@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";// your mongo connect helper
 import  { IProfileBase, Profile } from "@/mongodb/models/profile"; // your profile model
 import connectDB from "@/mongodb/db";

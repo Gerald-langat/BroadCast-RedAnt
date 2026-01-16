@@ -14,7 +14,7 @@ import CommentForm from "./CommentForm";
 import CommentFeed from "./CommentFeed";
 import { IPostDocument } from "@/mongodb/models/post";
 import Link from "next/link";
-import followContext from "@/app/context/followContext";
+import { useFollowContext } from "@/app/context/followContext";
 import { mutate } from "swr";
 
 
@@ -45,7 +45,7 @@ function PostOptions({
     recastedAt: string | Date;
   }[]
 >(post.recastDetails ?? []);
-    const { handleFollow, following } = followContext();
+    const { handleFollow, following } = useFollowContext();
 
 
 

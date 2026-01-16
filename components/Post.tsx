@@ -10,7 +10,9 @@ import ReactTimeago from "react-timeago";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import useFollowContext from "@/app/context/followContext";
+import { useFollowContext } from "@/app/context/followContext";
+import Image from "next/image";
+
 
 function Post({ post }: { post: IPostDocument }) {
   const { user } = useUser();
@@ -18,32 +20,29 @@ function Post({ post }: { post: IPostDocument }) {
   const { handleFollow, following } = useFollowContext();
    
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (videoRef.current) {
-            if (entry.isIntersecting) {
-              videoRef.current.play();
-            } else {
-              videoRef.current.pause();
-            }
-          }
-        });
-      },
-      { threshold: 0.5 } // 50% of the video must be visible
-    );
+useEffect(() => {
+  const video = videoRef.current;
+  if (!video) return;
 
-    if (videoRef.current) {
-      observer.observe(videoRef.current);
-    }
-
-    return () => {
-      if (videoRef.current) {
-        observer.unobserve(videoRef.current);
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      if (entry.isIntersecting) {
+        video.play();
+      } else {
+        video.pause();
       }
-    };
-  }, []);
+    },
+    { threshold: 0.5 }
+  );
+
+  observer.observe(video);
+
+  return () => {
+    observer.unobserve(video);
+    observer.disconnect();
+  };
+}, []);
+
 
 
   const isAuthor = user?.id === post.user.userId;
@@ -110,7 +109,7 @@ function Post({ post }: { post: IPostDocument }) {
         </Link>
             {post.imageUrls && post.imageUrls.length === 1 ? (
               <Link href={`fullMedia/${String(post._id)}`}>
-                <img
+                <Image
                   src={post.imageUrls[0]}
                   alt="Post Image"
                   className="w-full mx-auto"
@@ -119,7 +118,7 @@ function Post({ post }: { post: IPostDocument }) {
             ) : post.imageUrls && post.imageUrls.length > 1 ? (
               <Link href={`fullMedia/${String(post._id)}`} className="grid grid-cols-2 gap-1">
                 {post.imageUrls.map((url: string, idx: number) => (
-                  <img
+                  <Image
                     key={idx}
                     src={url}
                     alt={`Post Image ${idx + 1}`}

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import CommentForm from "@/components/CommentForm";
 import CommentFeed from "@/components/CommentFeed";
 import { IPostDocument } from "@/mongodb/models/post";
+import Image from "next/image";
 
 export default function FullMediaPage() {
   const { post_id } = useParams();
@@ -12,21 +13,25 @@ export default function FullMediaPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Fetch post function
-  const fetchPost = async () => {
-    try {
-      const res = await fetch(`/api/posts/${post_id}`);
-      if (!res.ok) throw new Error("Failed to fetch post");
-      const data = await res.json();
-      setPost(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+const fetchPost = useCallback(async () => {
+  if (!post_id) return;
+
+  try {
+    const res = await fetch(`/api/posts/${post_id}`);
+    if (!res.ok) throw new Error("Failed to fetch post");
+    const data = await res.json();
+    setPost(data);
+  } catch (err) {
+    console.error(err);
+  }
+}, [post_id]);
+
 
   // Load post
-  useEffect(() => {
-    if (post_id) fetchPost();
-  }, [post_id]);
+useEffect(() => {
+  fetchPost();
+}, [fetchPost]);
+
 
   // Pause video when out of view
   useEffect(() => {
@@ -64,7 +69,7 @@ export default function FullMediaPage() {
 
         {/* Images */}
         {post.imageUrls && post.imageUrls.length === 1 ? (
-          <img
+          <Image
             src={post.imageUrls[0]}
             alt="Post Image"
             className="w-full mx-auto rounded-lg"
@@ -72,7 +77,7 @@ export default function FullMediaPage() {
         ) : post.imageUrls && post.imageUrls.length > 1 ? (
           <div className="grid grid-cols-2 gap-2">
             {post.imageUrls.map((url: string, idx: number) => (
-              <img
+              <Image
                 key={idx}
                 src={url}
                 alt={`Post Image ${idx + 1}`}

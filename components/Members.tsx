@@ -1,6 +1,8 @@
 "use client"
 
-import followContext from "@/app/context/followContext";
+import { useFollowContext } from "@/app/context/followContext";
+
+
 import { formatNumber } from "@/lib/formatnumber";
 import { IProfileBase } from "@/mongodb/models/profile";
 import { useUser } from "@clerk/nextjs";
@@ -10,7 +12,7 @@ import Link from "next/link";
 function Members({ users }: { users: IProfileBase[] }) {
     const {user} = useUser();
 
-    const { handleFollow, following, loading } = followContext();
+    const { handleFollow, following, loading } = useFollowContext();
 
     const author = user?.id;
 

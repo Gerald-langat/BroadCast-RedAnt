@@ -18,6 +18,7 @@ import { useCreateNewChat } from "@/app/hooks/useCreateNewChat";
 import UserSearch from "./UserSearch";
 import { IProfileBase } from "@/mongodb/models/profile";
 import useSWR from "swr";
+import Image from "next/image";
 
 // ✅ SWR fetcher with deduplication
 const fetcher = async (url: string) => {
@@ -128,8 +129,8 @@ function NewChatDialog({ children }: { children: React.ReactNode }) {
                     className="flex items-center justify-between p-2 border border-border rounded-lg"
                   >
                     <div className="flex items-center space-x-2">
-                      <img
-                        src={user.userImg}
+                      <Image
+                        src={user.userImg || "/default-profile.png"}
                         alt={user.firstName || "User"}
                         className="h-6 w-6 rounded-full object-cover"
                       />

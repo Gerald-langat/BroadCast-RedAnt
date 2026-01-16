@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Button } from "./ui/button";
-import { ChannelList, useChatContext, ChannelPreviewMessenger } from "stream-chat-react";
+import { ChannelList, useChatContext } from "stream-chat-react";
 import NewChatDialog from "./NewChatDialog";
 import { MessageCircleDashed } from "lucide-react";
 import streamClient from "@/lib/stream";
@@ -20,6 +20,7 @@ import { IProfileBase } from "@/mongodb/models/profile";
 import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const fetcher = (url: string) =>
   fetch(url).then((res) => {
@@ -28,19 +29,24 @@ const fetcher = (url: string) =>
   });
 
 export function AppSidebar() {
-  const { client, setActiveChannel } = useChatContext();
+  const { client, setActiveChannel, channel: activeChannel } = useChatContext();
   const { user } = useUser();
   const router = useRouter();
   const [loadingAI, setLoadingAI] = useState(false);
   const { data: profile, isLoading } = useSWR<IProfileBase>("/api/profile", fetcher);
-const { channel: activeChannel } = useChatContext();
 
+  // Sort channels by last message timestamp descending
+const sort = {
+  last_message_at: -1 as const,
+};
 
-  const sort = { last_message_at: -1 };
+  // Filters to show only channels the user is a member of
   const filters = {
     members: { $in: [profile?.userId || ""] },
     type: "messaging",
   };
+
+  const showHumanChats = !activeChannel?.id?.startsWith("ai-chat-");
 
   // ---------------------------
   // Create AI chat
@@ -54,11 +60,10 @@ const { channel: activeChannel } = useChatContext();
       await fetch("/api/stream/upsert-ai", { method: "POST" });
 
       // Get or create AI channel
-     const aiChannel = client.channel("messaging", `ai-chat-${user.id}`);
+      const aiChannel = client.channel("messaging", `ai-chat-${user.id}`);
       await aiChannel.watch();
       setActiveChannel(aiChannel);
       router.push("/dashboard/ai-page");
-
     } catch (err) {
       console.error("AI chat creation failed:", err);
     } finally {
@@ -67,18 +72,12 @@ const { channel: activeChannel } = useChatContext();
   };
 
   // ---------------------------
-  // Handle human chat click
+  // Start a new human chat
   // ---------------------------
-
-   const handleClick = () => {
-    // 1️⃣ Navigate to dashboard first
+  const handleClick = () => {
     router.push("/dashboard");
-
-    // 2️⃣ Open the dialog after a short delay
-    setTimeout(() =>  50); // small delay ensures dashboard renders
+    setTimeout(() => 50); // Small delay to allow dashboard render
   };
-
-  const showHumanChats = !activeChannel?.id?.startsWith("ai-chat-");
 
   return (
     <Sidebar variant="floating" className="dark:bg-black">
@@ -98,10 +97,10 @@ const { channel: activeChannel } = useChatContext();
                       <span className="text-gray-400">@{profile?.nickName}</span>
                     </div>
                   </div>
-                  <img
-                    src={profile?.userImg}
+                  <Image
+                    src={profile?.userImg || "/default-profile.png"}
                     className="h-8 w-8 rounded-full"
-                    alt={profile?.firstName}
+                    alt={profile?.firstName || "Profile Image"}
                   />
                 </div>
               )}
@@ -114,12 +113,14 @@ const { channel: activeChannel } = useChatContext();
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu className="gap-2">
+            {/* New Chat Dialog */}
             <NewChatDialog>
               <Button variant="outline" className="w-full" onClick={handleClick}>
                 Start New Chat
               </Button>
             </NewChatDialog>
 
+            {/* Divider */}
             <div className="flex items-center">
               <hr className="w-1/2 mr-1" /> or <hr className="w-1/2 ml-1" />
             </div>
@@ -135,16 +136,26 @@ const { channel: activeChannel } = useChatContext();
             </Button>
 
             {/* Human chats */}
-        {showHumanChats && streamClient.userID && ( 
-          <ChannelList sort={sort} filters={{ members: { $in: [streamClient.userID] }, type: "messaging", }} 
-          options={{ state: true, watch: true, presence: true }}
-           EmptyStateIndicator={() => 
-           ( <div className="flex flex-col items-center justify-center text-center py-8 px-4"> 
-           <div className="mb-4 opacity-30"> 
-            <MessageCircleDashed className="w-12 h-12 text-muted-foreground" />
-            </div> <h2 className="text-lg font-semibold text-foreground mb-1"> Ready to chat? </h2> 
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs"> Your conversations will appear here 
-              once you start chatting with others. </p> </div> )} /> )}
+            {showHumanChats && streamClient.userID && (
+              <ChannelList
+                filters={filters}
+                   sort={sort}
+                options={{ state: true, watch: true, presence: true }}
+                EmptyStateIndicator={() => (
+                  <div className="flex flex-col items-center justify-center text-center py-8 px-4">
+                    <div className="mb-4 opacity-30">
+                      <MessageCircleDashed className="w-12 h-12 text-muted-foreground" />
+                    </div>
+                    <h2 className="text-lg font-semibold text-foreground mb-1">
+                      Ready to chat?
+                    </h2>
+                    <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+                      Your conversations will appear here once you start chatting with others.
+                    </p>
+                  </div>
+                )}
+              />
+            )}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

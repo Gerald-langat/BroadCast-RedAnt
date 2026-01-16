@@ -17,6 +17,7 @@ import { formatNumber } from "@/lib/formatnumber";
 import { IPostDocument } from "@/mongodb/models/marketpost";
 import { useUser } from "@clerk/nextjs";
 import { ImageIcon, MessageCircleMore, Trash2Icon } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -159,7 +160,7 @@ export default function MarketFeed({ posts }: { posts: IPostDocument[] }) {
                         muted
                       />
                     ) : (
-                      <img
+                      <Image
                         key={idx}
                         src={preview[idx]}
                         alt={`preview-${idx}`}
@@ -214,7 +215,7 @@ export default function MarketFeed({ posts }: { posts: IPostDocument[] }) {
         {posts.map((post) => (
           <div key={String(post._id)} className="card bg-base-100 shadow-sm border-[1px] rounded-md">
             <figure className="h-40">
-              <img
+              <Image
                 src={
                   post.imageUrls?.[0] ||
                   "https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"

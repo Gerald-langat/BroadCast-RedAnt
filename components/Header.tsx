@@ -96,8 +96,8 @@ import { useProfile } from "./useProfile";
             key={s._id?.toString()}
             className="flex items-center p-2 gap-2 rounded-md transition hover:bg-gray-100 dark:hover:bg-gray-700"
           >
-            <img
-              src={s.userImg}
+            <Image
+              src={s.userImg || "/default-profile.png"}
               className="w-8 h-8 rounded-full"
               alt={`${s.firstName} ${s.lastName}`}
             />

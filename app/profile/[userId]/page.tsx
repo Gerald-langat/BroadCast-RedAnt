@@ -1,7 +1,7 @@
 "use client";
 
 import deletePostAction from '@/app/actions/deleteAccount';
-import useFollowContext from '@/app/context/followContext';
+import { useFollowContext } from "@/app/context/followContext";
 import { ThemeToggle } from '@/components/themeToggle';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -171,7 +171,7 @@ const handleSubmit = async () => {
                     </DialogHeader>
                     {/* Status Image Preview */}
                     {(preview || userData?.userImg) && (
-                      <img
+                      <Image
                         src={preview || userData?.userImg}
                         alt="status preview"
                         className="h-24 w-24 rounded-md mt-2"
@@ -287,7 +287,7 @@ const handleSubmit = async () => {
 
         {post.imageUrls && post.imageUrls.length > 0 ? (
           <Link href={`fullMedia/${String(post._id)}`}>
-            <img
+            <Image
               src={Array.isArray(post.imageUrls) ? post.imageUrls[0] : post.imageUrls}
               alt="Post Image"
               className="w-full mx-auto rounded-sm"

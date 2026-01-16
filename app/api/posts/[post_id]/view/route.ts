@@ -1,17 +1,26 @@
+
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import connectDB from "@/mongodb/db";
 import { Post } from "@/mongodb/models/post";
 
+type RouteParams = {
+  post_id: string;
+};
+
 // ✅ Increment view count
 export async function POST(
   request: Request,
-  { params }: { params: { post_id: string } }
+  { params }: { params: Promise<RouteParams> }
 ) {
   try {
     await connectDB();
 
+    const { post_id } = await params;
+
     await Post.updateOne(
-      { _id: params.post_id },
+      { _id: post_id },
       { $inc: { viewCount: 1 } }
     );
 
@@ -28,12 +37,14 @@ export async function POST(
 // ✅ Fetch post details (including viewCount)
 export async function GET(
   request: Request,
-  { params }: { params: { post_id: string } }
+  { params }: { params: Promise<RouteParams> }
 ) {
   try {
     await connectDB();
 
-    const post = await Post.findById(params.post_id)
+    const { post_id } = await params;
+
+    const post = await Post.findById(post_id)
       .populate("comments")
       .populate("user")
       .lean();

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import connectDB from "../../../mongodb/db";

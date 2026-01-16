@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { IPostDocument } from "@/mongodb/models/statusPost";
 import deleteStatusAction from "@/app/actions/deleteStatusAction";
+import Image from "next/image";
 
 export default function Page() {
   const params = useParams<{ userId: string }>();
@@ -70,7 +71,7 @@ export default function Page() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [status, currentIndex, loading, isPaused]);
+  }, [status, currentIndex, loading, isPaused, router]);
 
   const handleNext = () => {
     if (currentIndex < status.length - 1) {
@@ -134,7 +135,7 @@ export default function Page() {
             onEnded={handleNext}
           />
         ) : currentStatus?.imageUrls?.length === 1 ? (
-          <img
+          <Image
             src={currentStatus.imageUrls[0]}
             alt="Status"
             className="max-h-[80vh] object-contain"

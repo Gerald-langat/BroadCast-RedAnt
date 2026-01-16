@@ -1,3 +1,6 @@
+
+export const dynamic = "force-dynamic";
+
 import connectDB from "@/mongodb/db";
 import { Followers } from "@/mongodb/models/followers";
 import { Profile } from "@/mongodb/models/profile";

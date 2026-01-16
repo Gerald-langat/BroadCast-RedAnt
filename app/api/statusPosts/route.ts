@@ -1,4 +1,6 @@
 // api/statusPosts/route.ts
+export const dynamic = "force-dynamic";
+
 import connectDB from "@/mongodb/db";
 import { Status } from "@/mongodb/models/statusPost";
 import { NextResponse } from "next/server";

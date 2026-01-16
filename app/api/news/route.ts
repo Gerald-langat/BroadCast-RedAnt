@@ -1,4 +1,6 @@
 // api/news/route.ts
+export const dynamic = "force-dynamic";
+
 import connectDB from "@/mongodb/db";
 import { Post } from "@/mongodb/models/post";
 import { NextResponse } from "next/server";

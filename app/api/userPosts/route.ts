@@ -1,4 +1,6 @@
 // api/userPosts/route.ts
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import connectDB from "@/mongodb/db";
 import { Post, IPostBase } from "@/mongodb/models/post"; // ✅ import the Mongoose model

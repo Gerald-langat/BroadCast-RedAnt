@@ -1,16 +1,57 @@
-// posts/[post_id]/route.ts
+// app/api/posts/[post_id]/route.ts
+export const dynamic = "force-dynamic";
+
 import connectDB from "@/mongodb/db";
 import { Post } from "@/mongodb/models/post";
 import { NextResponse } from "next/server";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { post_id: string } }
+type RouteParams = {
+  post_id: string;
+};
+
+
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<RouteParams> }
 ) {
   await connectDB();
 
+  const { post_id } = await params;
+  const { userId } = await req.json();
+
+  const post = await Post.findById(post_id);
+  if (!post) {
+    return NextResponse.json({ error: "Post not found" }, { status: 404 });
+  }
+
+  const hasRecasted = post.recastedBy.includes(userId);
+
+  if (hasRecasted) {
+    post.recastedBy = post.recastedBy.filter(id => id !== userId);
+  } else {
+    post.recastedBy.push(userId);
+  }
+
+  await Post.updateOne(
+    { _id: post_id },
+    { $inc: { viewCount: 1 } }
+  );
+
+  await post.save();
+
+  return NextResponse.json({ recastedBy: post.recastedBy });
+}
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<RouteParams> }
+) {
+  await connectDB();
+
+  const { post_id } = await params;
+
   try {
-    const post = await Post.findById(params.post_id);
+    const post = await Post.findById(post_id);
 
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
@@ -31,12 +72,11 @@ export interface DeletePostRequestBody {
 
 export async function DELETE(
   request: Request,
-  context: { params: Promise<{ post_id: string }> }
+  { params }: { params: Promise<RouteParams> }
 ) {
-  //   auth().protect();
-
   await connectDB();
-  const { post_id } = await context.params;
+
+  const { post_id } = await params;
   const { userId }: DeletePostRequestBody = await request.json();
 
   try {
@@ -47,7 +87,10 @@ export async function DELETE(
     }
 
     if (post.user.userId !== userId) {
-      throw new Error("Post does not belong to the user");
+      return NextResponse.json(
+        { error: "Post does not belong to the user" },
+        { status: 403 }
+      );
     }
 
     await post.removePost();

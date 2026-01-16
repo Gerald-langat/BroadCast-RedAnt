@@ -2,6 +2,7 @@
 import { IPostDocument } from "@/mongodb/models/post";
 import { useScope } from "@/app/context/ScopeContext";
 import Link from "next/link";
+import Image from "next/image";
 
 function MediaFeed({ posts }: { posts: IPostDocument[] }) {
   const { scope } = useScope();
@@ -13,7 +14,7 @@ if(posts.length === 0) {
   return (
     <div className="pb-20 max-w-4xl grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
   {posts
-    .filter((p) => p.scope === scope)
+    .filter((p) => p.currentLevel === scope)
     .filter((p) => (p.imageUrls && p.imageUrls.length > 0) || p.videoUrl)
     .map((post) => (
       <div key={String(post._id)} className="flex flex-col">
@@ -21,7 +22,7 @@ if(posts.length === 0) {
           {/* Single Image */}
           {post.imageUrls && post.imageUrls.length > 0 ? (
             <div className="relative">
-              <img
+              <Image
                 src={post.imageUrls[0]}
                 alt="Post Image"
                 className="w-full h-48 object-cover rounded-lg"

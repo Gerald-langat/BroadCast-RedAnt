@@ -253,7 +253,7 @@ const handleSubmitStatus = async (
                   muted
                 />
               ) : (
-                <img
+                <Image
                   key={idx}
                   src={statusPreview[idx]}
                   alt={`preview-${idx}`}
@@ -382,7 +382,7 @@ const handleSubmitStatus = async (
                   muted
                 />
               ) : (
-                <img
+                <Image
                   key={idx}
                   src={preview[idx]}
                   alt={`preview-${idx}`}

@@ -1,6 +1,6 @@
 "use client"
 
-import useFollowContext from '@/app/context/followContext';
+import { useFollowContext } from "@/app/context/followContext";
 import { IProfileBase } from '@/mongodb/models/profile';
 import { useUser } from '@clerk/nextjs';
 import Image from 'next/image'

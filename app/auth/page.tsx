@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 import createProfileAction from "../actions/profile";
+import Image from "next/image";
 
 const inputSchema = z.object({
   firstName: z.string().nonempty("First name is required"),
@@ -216,7 +217,7 @@ const user = useUser();
                 hidden
                 onChange={handleImageChange}
               />
-              {preview && <img src={preview} alt="preview" className="h-16 w-16 rounded-md mt-2" />}
+              {preview && <Image src={preview} alt="preview" className="h-16 w-16 rounded-md mt-2" />}
             </div>
         <div className="flex flex-col justify-self-start space-y-2">
                {/* Category Dropdown */}

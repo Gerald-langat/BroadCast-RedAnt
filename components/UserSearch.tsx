@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { Input } from "./ui/input";
 import { useUser } from "@clerk/nextjs";
+import Image from "next/image";
 
 type Doc = {
   firstName: string;
@@ -38,7 +39,7 @@ function UserSearch({ users, onSelectUser, className }: UserSearchProps) {
             onClick={() => onSelectUser(user)}
             className="flex items-center space-x-2 p-2 cursor-pointer hover:bg-muted rounded-lg"
           >
-            <img
+            <Image
               src={user.imageUrl || user.userImg}
               alt={user.firstName}
               className="w-6 h-6 rounded-full object-cover"
